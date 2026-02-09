@@ -1,23 +1,5 @@
 # Copyright (c) 2025 Telegram:- @WTF_Phantom <DevixOP>
-# Location: Supaul, Bihar 
-#
-# All rights reserved.
-#
-# This code is the intellectual property of @WTF_Phantom.
-# You are not allowed to copy, modify, redistribute, or use this
-# code for commercial or personal projects without explicit permission.
-#
-# Allowed:
-# - Forking for personal learning
-# - Submitting improvements via pull requests
-#
-# Not Allowed:
-# - Claiming this code as your own
-# - Re-uploading without credit or permission
-# - Selling or using commercially
-#
-# Contact for permissions:
-# Email: king25258069@gmail.com
+# Edited for Malik: ZEXX
 
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from telegram.ext import ContextTypes
@@ -28,13 +10,19 @@ from baka.utils import ensure_user_exists, get_mention, track_group, log_to_chan
 # --- 🖼️ IMAGES ---
 SUDO_IMG = "https://files.catbox.moe/gyi5iu.jpg"
 
-# --- ⌨️ KEYBOARDS ---
+# --- ⌨️ KEYBOARDS (STYLISH DESIGN) ---
 
 def get_start_keyboard(bot_username):
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("📢 𝐔𝐩𝐝𝐚𝐭𝐞𝐬", url=SUPPORT_CHANNEL), InlineKeyboardButton("💬 𝐒𝐮𝐩𝐩𝐨𝐫𝐭", url=SUPPORT_GROUP)],
+        [
+            InlineKeyboardButton("❍ 𝐔ᴩᴅᴀᴛᴇ ❍", url=SUPPORT_CHANNEL), 
+            InlineKeyboardButton("❍ 𝐒ᴜᴩᴏᴏʀᴛ ❍", url=SUPPORT_GROUP)
+        ],
         [InlineKeyboardButton("➕ 𝐀𝐝𝐝 𝐌𝐞 𝐁𝐚𝐛𝐲 ➕", url=f"https://t.me/{bot_username}?startgroup=true")],
-        [InlineKeyboardButton("📖 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮", callback_data="help_main"), InlineKeyboardButton("♛ 𝐎𝐰𝐧𝐞𝐫", url=OWNER_LINK)]
+        [
+            InlineKeyboardButton("✿ 𝐇ᴇʟᴩ ✿", callback_data="help_main"), 
+            InlineKeyboardButton("♡︎ 𝐙ᴇxx ♡︎", url=OWNER_LINK)
+        ]
     ])
 
 def get_help_keyboard():
@@ -48,7 +36,7 @@ def get_help_keyboard():
 def get_back_keyboard():
     return InlineKeyboardMarkup([[InlineKeyboardButton("🔙 𝐁𝐚𝐜𝐤", callback_data="help_main")]])
 
-# --- 🚀 COMMANDS ---
+# --- 🚀 START COMMAND (UNDERWORLD LOOK) ---
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -56,17 +44,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ensure_user_exists(user)
     track_group(chat, user)
     
+    # Aapka Stylish Caption
     caption = (
-        f"👋 <b>Kon'nichiwa</b> {get_mention(user)}! (⁠≧⁠▽⁠≦⁠)\n\n"
-        f"『 <b>{BOT_NAME}</b> 』\n"
-        f"<i>The Aesthetic AI-Powered RPG Bot!</i> 🌸\n\n"
-        f"🎮 <b>𝐅𝐞𝐚𝐭𝐮𝐫𝐞𝐬:</b>\n"
-        f"‣ <b>RPG:</b> Kill, Rob (100%), Protect\n"
-        f"‣ <b>Social:</b> Marry, Couple\n"
-        f"‣ <b>Economy:</b> Claim, Give\n"
-        f"‣ <b>AI:</b> Sassy Chatbot\n\n"
-        f"💭 <b>𝐍𝐞𝐞𝐝 𝐇𝐞𝐥𝐩?</b>\n"
-        f"Click the buttons below!\n"
+        f"❖ 𝐇𝐲 {get_mention(user)}\n\n"
+        f"𝐈 𝐀𝐌 <b>{BOT_NAME}</b>\n"
+        f"𝐓𝐇𝐄 𝐀𝐄𝐒𝐓𝐇𝐄𝐓𝐈𝐂 𝐀𝐈 𝐑𝐏𝐆 & 𝐌𝐀𝐅𝐈𝐘𝐀 𝐔𝐍𝐃𝐄𝐑𝐖𝐎𝐑𝐋𝐃 𝐁𝐎𝐓\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"🎮 𝐅𝐄𝐀𝐓𝐔𝐑𝐄𝐒\n\n"
+        f"⚔️ 𝐑𝐏𝐆 : 𝐊𝐈𝐋𝐥•𝐏𝐑𝐎𝐓𝐄𝐂𝐓• 𝐑𝐄𝐕𝐈𝐕𝐄 \n"
+        f"💗 𝐒𝐎𝐂𝐈𝐀𝐋 : 𝐌𝐀𝐑𝐑𝐘•𝐂𝐎𝐔𝐏𝐋𝐄• 𝐖𝐀𝐈𝐅𝐔\n"
+        f"💰 𝐄𝐂𝐎𝐍𝐎𝐌𝐘 : 𝐂𝐋𝐀𝐈𝐌•𝐆𝐈𝐕𝐄 𝐒𝐇𝐎𝐏•𝐃𝐀𝐈𝐋𝐘\n"
+        f"🤖 𝐀𝐈 : 𝐒𝐌𝐀𝐑𝐓 𝐂𝐇𝐀𝐓𝐁𝐎𝐓•𝐀𝐒𝐊 𝐀𝐍𝐘𝐓𝐇𝐈𝐍𝐆\n"
+        f"🎲 𝐅𝐔𝐍 : 𝐆𝐀𝐌𝐄𝐒•𝐑𝐈𝐃𝐃𝐋𝐄𝐒 𝐒𝐋𝐎𝐓𝐒  & 𝐌𝐀𝐅𝐈𝐘𝐀•𝐖𝐀𝐑 𝐔𝐍𝐃𝐄𝐑𝐖𝐎𝐑𝐋𝐃.....\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"💭 𝐏𝐑𝐄𝐒𝐇 𝐓𝐎 𝐇𝐄𝐋𝐏 𝐁𝐔𝐓𝐓𝐎𝐍 \n"
+        f"𝐒𝐄𝐄 𝐀𝐋𝐋 𝐅𝐄𝐀𝐓𝐔𝐑𝐄 & 𝐔𝐒𝐄 𝐖𝐈𝐓𝐇 ./\n\n"
+        f"❍ 𝐒ᴜᴩᴏᴏʀᴛ ❍\n"
+        f"❍ 𝐔ᴩᴅᴀᴛᴇ ❍\n"
+        f"✿ 𝐇ᴇʟᴩ ✿\n"
+        f"♡︎ 𝐙ᴇxx ♡︎"
     )
 
     kb = get_start_keyboard(context.bot.username)
@@ -82,6 +78,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if chat.type == ChatType.PRIVATE and not update.callback_query:
         await log_to_channel(context.bot, "command", {"user": f"{get_mention(user)} (`{user.id}`)", "action": "Started Bot", "chat": "Private"})
+
+# --- 📖 HELP COMMAND ---
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_photo(
@@ -111,81 +109,19 @@ async def help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = ""
     
     if data == "help_social":
-        text = (
-            "💍 <b>𝐒𝐨𝐜𝐢𝐚𝐥 & 𝐋𝐨𝐯𝐞</b>\n\n"
-            "<b>/propose @user</b>\n"
-            "↳ Marry someone (5% Tax Perk).\n\n"
-            "<b>/marry</b>\n"
-            "↳ Check relationship status.\n\n"
-            "<b>/divorce</b>\n"
-            "↳ Break up (Cost: 2k).\n\n"
-            "<b>/couple</b>\n"
-            "↳ Matchmaking Fun!"
-        )
-
+        text = "💍 <b>𝐒𝐨𝐜𝐢𝐚𝐥 & 𝐋𝐨𝐯𝐞</b>\n\n<b>/propose @user</b>\n↳ Marry someone.\n<b>/marry</b>\n↳ Check status.\n<b>/divorce</b>\n<b>/couple</b>"
     elif data == "help_economy":
-        text = (
-            "💰 <b>𝐄𝐜𝐨𝐧𝐨𝐦𝐲 & 𝐒𝐡𝐨𝐩</b>\n\n"
-            "<b>/bal</b>\n"
-            "↳ Check Wallet, Rank & Inventory.\n\n"
-            "<b>/shop</b>\n"
-            "↳ Buy Weapons & Armor.\n\n"
-            "<b>/give [amt] [user]</b>\n"
-            "↳ Transfer (10% Tax).\n\n"
-            "<b>/claim</b>\n"
-            "↳ Group Bonus (2k).\n\n"
-            "<b>/daily</b>\n"
-            "↳ Streak Rewards.\n\n"
-            "<b>/ranking</b>\n"
-            "↳ Global Leaderboards."
-        )
-
+        text = "💰 <b>𝐄𝐜𝐨𝐧𝐨𝐦𝐲</b>\n\n<b>/bal</b>\n<b>/shop</b>\n<b>/give</b>\n<b>/claim</b>\n<b>/daily</b>"
     elif data == "help_rpg":
-        text = (
-            "⚔️ <b>𝐑𝐏𝐆 & 𝐖𝐚𝐫</b>\n\n"
-            "<b>/kill [user]</b>\n"
-            "↳ Murder. 50% Chance to loot Items!\n"
-            "<b>/rob [amt] [user]</b>\n"
-            "↳ Steal coins + 20% Chance to steal Items.\n"
-            "<b>/protect 1d</b>\n"
-            "↳ Buy Shield. Protects partner too!\n"
-            "<b>/revive</b>\n"
-            "↳ Revive instantly for 500 coins."
-        )
-
+        text = "⚔️ <b>𝐑𝐏𝐆 & 𝐖𝐚𝐫</b>\n\n<b>/kill</b>\n<b>/rob</b>\n<b>/protect</b>\n<b>/revive</b>"
     elif data == "help_fun":
-        text = (
-            "🧠 <b>𝐀𝐈 & 𝐅𝐮𝐧</b>\n\n"
-            "<b>/draw [prompt]</b> ➪ AI Art (Flux Anime).\n"
-            "<b>/speak [text]</b> ➪ Anime Voice.\n"
-            "<b>/chatbot</b> ➪ AI Settings.\n"
-            "<b>/riddle</b> ➪ AI Quiz.\n"
-            "<b>/dice</b> | <b>/slots</b> ➪ Gambling."
-        )
-
+        text = "🧠 <b>𝐀𝐈 & 𝐅𝐮𝐧</b>\n\n<b>/draw</b>\n<b>/speak</b>\n<b>/chatbot</b>\n<b>/riddle</b>\n<b>/dice</b>"
     elif data == "help_group":
-        text = (
-            "⚙️ <b>𝐆𝐫𝐨𝐮𝐩 𝐒𝐞𝐭𝐭𝐢𝐧𝐠𝐬</b>\n\n"
-            "<b>/welcome on/off</b> ➪ Welcome Images.\n"
-            "<b>/ping</b> ➪ System Status."
-        )
-
+        text = "⚙️ <b>𝐆𝐫𝐨𝐮𝐩</b>\n\n<b>/welcome on/off</b>\n<b>/ping</b>"
     elif data == "help_sudo":
         if query.from_user.id not in SUDO_USERS: return await query.answer("❌ Baka! Owner Only!", show_alert=True)
         target_photo = SUDO_IMG
-        text = (
-            "🔐 <b>𝐒𝐮𝐝𝐨 𝐏𝐚𝐧𝐞𝐥</b>\n\n"
-            "<b>/addcoins [amt] [user]</b>\n"
-            "<b>/rmcoins [amt] [user]</b>\n"
-            "<b>/freerevive [user]</b>\n"
-            "<b>/unprotect [user]</b>\n"
-            "<b>/broadcast -user/-group -clean</b>\n\n"
-            "<b>👑 Owner Only:</b>\n"
-            "<b>/update</b> (Restart System)\n"
-            "<b>/addsudo [user]</b>\n"
-            "<b>/rmsudo [user]</b>\n"
-            "<b>/cleandb</b> (Wipe Data)"
-        )
+        text = "🔐 <b>𝐒𝐮𝐝𝐨 𝐏𝐚𝐧𝐞𝐥</b>\n\n<b>/addcoins</b>\n<b>/broadcast</b>\n<b>/update</b>"
 
     try: await query.message.edit_media(InputMediaPhoto(media=target_photo, caption=text, parse_mode=ParseMode.HTML), reply_markup=kb)
     except: await query.message.edit_caption(caption=text, parse_mode=ParseMode.HTML, reply_markup=kb)
