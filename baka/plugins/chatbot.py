@@ -1,14 +1,18 @@
-import random  # 'I' lowercase kar diya
+# Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
+# Edited for Malik: ZEXX (Fast Database Version)
+
+import random
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode, ChatType
-
 from baka.database import chatbot_collection, add_chat_to_db, get_chat_response
+from baka.config import OWNER_ID  # Ensure OWNER_ID is imported from config or set below
 
 # =====================================
 # ⚙️ 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐓𝐈𝐎𝐍
 # =====================================
-OWNER_ID = 123456789  # <--- Malik (ZEXX), apni ID yahan dalein
+# Malik: ZEXX
+OWNER_ID = 8211189367  # <--- Apni ID yahan confirm kar lein
 
 async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -24,7 +28,7 @@ async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return await update.message.reply_text("<b>❌ ye only owner (ZEXX) ke liye hai baby 💀!</b>", parse_mode=ParseMode.HTML)
-    
+
     try:
         args = " ".join(context.args)
         if "|" not in args:
@@ -42,7 +46,7 @@ async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
         return await update.message.reply_text("<b>❌ 𝐍𝐎 𝐀𝐂𝐂𝐄𝐒𝐒! Only Malik ZEXX can use this.</b>", parse_mode=ParseMode.HTML)
-    
+
     raw_data = " ".join(context.args)
     if not raw_data:
         return await update.message.reply_text("<b>📌 𝐔𝐒𝐀𝐆𝐄:</b> <code>/bulkadd hi=hello,bye=tata</code>", parse_mode=ParseMode.HTML)
@@ -55,15 +59,14 @@ async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
             add_chat_to_db(w.strip().lower(), r.strip())
             count += 1
     await update.message.reply_text(
-        f"<b>✅ 『 𝐁𝐔𝐋𝐊 𝐀𝐃𝐃𝐄𝐃 』\n\n✨ Malik, <code>{count}</code> naye replies add ho gaye done baby 💗!</b>", 
+        f"<b>✅ 『 𝐁𝐔𝐋𝐊 𝐀𝐃𝐃𝐄𝐃 』\n\n✨ Malik ZEXX, <code>{count}</code> naye replies add ho gaye done baby 💗!</b>", 
         parse_mode=ParseMode.HTML
     )
 
-async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = " ".join(context.args)
-    if not query: 
-        return await update.message.reply_text("<b>𝐏𝐥𝐞𝐚𝐬𝐞 𝐚𝐬𝐤 𝐬𝐨𝐦𝐞𝐭𝐡𝐢𝐧𝐠 baby!</b>", parse_mode=ParseMode.HTML)
-    await update.message.reply_text(f"🔍 <b>𝐀𝐈 𝐢𝐬 𝐭𝐡𝐢𝐧𝐤𝐢𝐧𝐠...</b>", parse_mode=ParseMode.HTML)
+# --- Empty function to prevent menu errors ---
+async def chatbot_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Placeholder to fix AttributeError in logs"""
+    await update.message.reply_text("<b>🤖 Chatbot Settings:</b>\nUse <code>/chatbot on/off</code> to toggle.", parse_mode=ParseMode.HTML)
 
 # =====================================
 # ⚙️ 𝐓𝐎𝐆𝐆𝐋𝐄 (𝐎𝐍/𝐎𝐅𝐅) - 𝐀𝐃𝐌𝐈𝐍𝐒 & 𝐎𝐖𝐍𝐄𝐑
@@ -72,10 +75,10 @@ async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await is_admin_or_owner(update, context):
         return await update.message.reply_text("<b>❌ Admins ya Owner (ZEXX) only baby!</b>", parse_mode=ParseMode.HTML)
-    
+
     if not context.args: 
         return await update.message.reply_text("<b>📌 𝐔𝐒𝐀𝐆𝐄:</b> <code>/chatbot on/off</code>", parse_mode=ParseMode.HTML)
-    
+
     chat = update.effective_chat
     action = context.args[0].lower()
 
@@ -87,7 +90,7 @@ async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("<b>📴 『 𝐂𝐇𝐀𝐓𝐁𝐎𝐓 𝐎𝐅𝐅 』\n\n🔇 baby off kr diye mujhe 🥺.</b>", parse_mode=ParseMode.HTML)
 
 # =====================================
-# 🤖 𝐀𝐈 𝐌𝐄𝐒𝐒𝐀𝐆𝐄 𝐇𝐀𝐍𝐃𝐋𝐄𝐑
+# 🤖 𝐌𝐄𝐒𝐒𝐀𝐆𝐄 𝐇𝐀𝐍𝐃𝐋𝐄𝐑 (𝐃𝐀𝐓𝐀𝐁𝐀𝐒𝐄 𝐎𝐍𝐋𝐘)
 # =====================================
 
 async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -99,7 +102,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user_name = msg.from_user.first_name
 
     # --- 1. Identity Check (Branding for ZEXX) ---
-    if any(x in text for x in ["owner", "malik", "admin"]):
+    if any(x in text for x in ["owner", "malik", "admin", "creator"]):
         return await msg.reply_text(f"Mere Malik <b>『 𝐙𝐄𝐗𝐗 』</b> hain!", parse_mode=ParseMode.HTML)
 
     # --- 2. Group Status Check ---
@@ -107,7 +110,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         doc = chatbot_collection.find_one({"chat_id": f"settings_{chat.id}"}, {"enabled": 1})
         if doc and not doc.get("enabled", True): return
 
-    # --- 3. Database Response ---
+    # --- 3. Database Response (Instant) ---
     responses = get_chat_response(text)
     if responses:
         reply = random.choice(responses)
