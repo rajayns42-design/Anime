@@ -6,13 +6,12 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode, ChatType
 from baka.database import chatbot_collection, add_chat_to_db, get_chat_response
-from baka.config import OWNER_ID  # Ensure OWNER_ID is imported from config or set below
 
 # =====================================
 # ⚙️ 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐓𝐈𝐎𝐍
 # =====================================
 # Malik: ZEXX
-OWNER_ID = 8211189367  # <--- Apni ID yahan confirm kar lein
+OWNER_ID = 8211189367 
 
 async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -63,10 +62,14 @@ async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.HTML
     )
 
-# --- Empty function to prevent menu errors ---
+# --- Logs Crash Fix: Missing Functions ---
 async def chatbot_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Placeholder to fix AttributeError in logs"""
+    """Fixes AttributeError: 'chatbot_menu' in Ryan.py"""
     await update.message.reply_text("<b>🤖 Chatbot Settings:</b>\nUse <code>/chatbot on/off</code> to toggle.", parse_mode=ParseMode.HTML)
+
+async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Fixes AttributeError: 'ask_ai' in Ryan.py"""
+    await update.message.reply_text("<b>❌ AI system disabled for speed!</b>\nUse database replies instead baby.", parse_mode=ParseMode.HTML)
 
 # =====================================
 # ⚙️ 𝐓𝐎𝐆𝐆𝐋𝐄 (𝐎𝐍/𝐎𝐅𝐅) - 𝐀𝐃𝐌𝐈𝐍𝐒 & 𝐎𝐖𝐍𝐄𝐑
