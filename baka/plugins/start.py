@@ -59,11 +59,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"━━━━━━━━━━━━━━━\n"
         f"💭 𝐏𝐑𝐄𝐒𝐇 𝐓𝐎 𝐇𝐄𝐋𝐏 𝐁𝐔𝐓𝐓𝐎𝐍 \n"
         f"𝐒𝐄𝐄 𝐀𝐋𝐋 𝐅𝐄𝐀𝐓𝐔𝐑𝐄 & 𝐔𝐒𝐄 𝐖𝐈𝐓𝐇 ./\n\n"
-        f"❍ 𝐒ᴜᴩᴏᴏʀᴛ ❍\n"
-        f"❍ 𝐔ᴩᴅᴀᴛᴇ ❍\n"
-        f"✿ 𝐇ᴇʟᴩ ✿\n"
-        f"♡︎ 𝐙ᴇxx ♡︎"
-    )
+      )
 
     kb = get_start_keyboard(context.bot.username)
 
