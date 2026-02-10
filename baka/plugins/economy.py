@@ -41,7 +41,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat.type != ChatType.PRIVATE:
         kb = InlineKeyboardMarkup([[InlineKeyboardButton("🚀 Register Here", url=f"https://t.me/{context.bot.username}?start=register")]])
         return await update.message.reply_text(
-            "❌ <b>Baka!</b> You cannot register in a group!\n"
+            "❌ <b>Angel!</b> You cannot register in a group!\n"
             "<i>Go to my PM to create your wallet securely.</i>",
             parse_mode=ParseMode.HTML,
             reply_markup=kb
@@ -65,7 +65,7 @@ async def claim(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
 
     if chat.type == ChatType.PRIVATE:
-        return await update.message.reply_text("⚠️ <b>Baka!</b> Group only command.", parse_mode=ParseMode.HTML)
+        return await update.message.reply_text("⚠️ <b>Angel!</b> Group only command.", parse_mode=ParseMode.HTML)
 
     ensure_user_exists(user)
     track_group(chat, user)
@@ -82,7 +82,7 @@ async def claim(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if count < MIN_CLAIM_MEMBERS:
         # AI Hata kar local fast roasts add kiye
         local_roasts = [
-            f"Sirf {count} log? Itne mein toh ZEXX ka bot chai bhi nahi peeta! 😂",
+            f"Sirf {count} log? Itne mein toh Angel chai bhi nahi peeta! 😂",
             f"Itne kam logo mein claim? Sharam karo thodi! 💀",
             f"Group hai ya shamshaan ghat? {MIN_CLAIM_MEMBERS} members lao pehle.",
             f"Gali ke kutton ki sankhya isse zyada hai, aur tumhe reward chahiye? 🤡"
