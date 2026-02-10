@@ -54,7 +54,7 @@ async def draw_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=image_url,
-            caption=f"🖼️ <b>Art by Baka</b>\n👤 {get_mention(user)}\n✨ <i>{user_prompt}</i>",
+            caption=f"🖼️ <b>Art by Angel</b>\n👤 {get_mention(user)}\n✨ <i>{user_prompt}</i>",
             parse_mode=ParseMode.HTML
         )
         await msg.delete()
