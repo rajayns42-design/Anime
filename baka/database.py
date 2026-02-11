@@ -2,22 +2,29 @@ from pymongo import MongoClient
 import certifi
 from baka.config import MONGO_URI
 
-# Initialize Connection
+# ===============================================
+# DATABASE CONNECTION
+# ===============================================
+
 RyanBaka = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = RyanBaka["bakabot_db"]
 
-# --- DEFINING COLLECTIONS ---
-users_collection = db["users"]       # Stores balance, inventory, waifus, stats
-groups_collection = db["groups"]     # Tracks group settings (welcome, claim status)
-sudoers_collection = db["sudoers"]   # Stores admin IDs
-chatbot_collection = db["chatbot"]   # Stores AI chat history per group/user
-riddles_collection = db["riddles"]   # Stores active riddles and answers
+# ===============================================
+# COLLECTIONS
+# ===============================================
 
-# 🆕 MAFIA COLLECTION (ZEXX Edition - Isse data kabhi nahi udega)
-mafia_collection = db["mafia"]       # Stores Team names, members, bank, and power
+users_collection = db["users"]
+groups_collection = db["groups"]
+sudoers_collection = db["sudoers"]
+chatbot_collection = db["chatbot"]
+riddles_collection = db["riddles"]
+mafia_collection = db["mafia"]
+
+# 🆕 WORDSEEK COLLECTION (Permanent Game Storage)
+wordseek_collection = db["wordseek"]
 
 # ===============================================
-# --- CHATBOT FUNCTIONS (ZEXX Edition) ---
+# CHATBOT FUNCTIONS
 # ===============================================
 
 def add_chat_to_db(word, response):
@@ -51,3 +58,62 @@ def is_chatbot_enabled(chat_id):
 
 def get_chatbot_stats():
     return chatbot_collection.count_documents({"word": {"$exists": True}})
+
+# ===============================================
+# WORDSEEK DATABASE FUNCTIONS (Permanent Edition)
+# ===============================================
+
+# 🔹 Start New Group Game
+def ws_start_game(chat_id, word):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {
+            "$set": {
+                "chat_id": chat_id,
+                "active": True,
+                "word": word,
+                "board": [],
+            }
+        },
+        upsert=True
+    )
+
+
+# 🔹 Get Active Game
+def ws_get_game(chat_id):
+    return wordseek_collection.find_one(
+        {"chat_id": chat_id, "active": True}
+    )
+
+
+# 🔹 Update Board
+def ws_update_board(chat_id, board):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"board": board}}
+    )
+
+
+# 🔹 End Game
+def ws_end_game(chat_id):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"active": False}}
+    )
+
+
+# 🔹 Add Win to Leaderboard
+def ws_add_win(chat_id, user_id):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {"$inc": {f"leaderboard.{user_id}": 1}},
+        upsert=True
+    )
+
+
+# 🔹 Get Leaderboard
+def ws_get_leaderboard(chat_id):
+    data = wordseek_collection.find_one({"chat_id": chat_id})
+    if data and "leaderboard" in data:
+        return data["leaderboard"]
+    return {}
