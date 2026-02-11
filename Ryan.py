@@ -21,7 +21,7 @@ from baka.plugins import (
     start, economy, game, admin, broadcast, fun, events, 
     welcome, ping, chatbot, riddle, social, ai_media, 
     waifu, collection, shop, daily, 
-    mafia  # <--- Mafia/Team plugin file
+    mafia, wordseek  # <--- WordSeek plugin yahan add kiya
 )
 
 # --- FLASK SERVER (Health Check) ---
@@ -39,19 +39,17 @@ async def post_init(application):
     """Runs immediately after bot connects to Telegram."""
     print("✅ Bot connected! Setting menu commands...")
 
-    # Set the blue "Menu" button (Updates with Team & Arena)
+    # Menu commands updated with WordSeek
     await application.bot.set_my_commands([
         ("start", "🌸 Main Menu"), 
+        ("word", "🎯 Start WordSeek Game"),
+        ("hint", "💡 Get Word Hint (Limit 2/week)"),
+        ("leaderboard", "🏆 WordSeek Ranking"),
         ("bal", "👛 Check Wallet"), 
         ("create_team", "🏢 Create Your Team"), 
-        ("join_team", "🤝 Join a Team"),
-        ("team_war", "⚔️ Start Team War"), 
-        ("arena", "🏟️ Arena Fight (1vs1)"),
-        ("ranking", "🏆 Global Leaderboard"), 
+        ("ranking", "🏆 Global Economy Ranking"), 
         ("daily", "📅 Daily Reward"),
         ("shop", "🛒 Item Shop"),
-        ("kill", "🔪 Murder for Loot"),
-        ("rob", "💰 Steal Coins"), 
         ("ping", "📶 Status"),
         ("update", "🔄 Update Bot"),
     ])
@@ -59,11 +57,6 @@ async def post_init(application):
     try:
         bot_info = await application.bot.get_me()
         print(f"✅ Logged in as {bot_info.username}")
-        await log_to_channel(application.bot, "start", {
-            "user": "System",
-            "chat": "Cloud Server",
-            "action": f"{BOT_NAME} is Online! 🚀"
-        })
     except Exception as e:
         print(f"⚠️ Startup Log Failed: {e}")
 
@@ -96,30 +89,20 @@ if __name__ == '__main__':
         app_bot.add_handler(CommandHandler("shop", shop.shop_menu))
         app_bot.add_handler(CommandHandler("buy", shop.buy))
 
-        # --- 3. 🕶️ MAFIA / TEAM SYSTEM (Added All New Commands) ---
+        # --- 3. 🕶️ MAFIA / TEAM SYSTEM ---
         app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
         app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
-        app_bot.add_handler(CommandHandler("promote_member", mafia.promote_member))
-        app_bot.add_handler(CommandHandler("kick_member", mafia.kick_member))
-        app_bot.add_handler(CommandHandler("leave_team", mafia.leave_team))
-        app_bot.add_handler(CommandHandler("t_deposit", mafia.team_deposit))
-        app_bot.add_handler(CommandHandler("t_withdraw", mafia.team_withdraw))
         app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
         app_bot.add_handler(CommandHandler("arena", mafia.arena_fight))
-        app_bot.add_handler(CommandHandler("team_leaderboard", mafia.team_leaderboard))
 
-        # --- 4. RPG Game (Purane Wale) ---
+        # --- 4. 🎯 WORDSEEK GAME (New Integration) ---
+        app_bot.add_handler(CommandHandler("word", wordseek.start_game))
+        app_bot.add_handler(CommandHandler("hint", wordseek.get_hint))
+        app_bot.add_handler(CommandHandler("leaderboard", wordseek.leaderboard))
+
+        # --- 5. RPG Game ---
         app_bot.add_handler(CommandHandler("kill", game.kill))
         app_bot.add_handler(CommandHandler("rob", game.rob))
-        app_bot.add_handler(CommandHandler("protect", game.protect))
-        app_bot.add_handler(CommandHandler("revive", game.revive))
-
-        # --- 5. Social & Fun ---
-        app_bot.add_handler(CommandHandler("propose", social.propose))
-        app_bot.add_handler(CommandHandler("marry", social.marry_status))
-        app_bot.add_handler(CommandHandler("divorce", social.divorce))
-        app_bot.add_handler(CommandHandler("dice", fun.dice))
-        app_bot.add_handler(CommandHandler("slots", fun.slots))
 
         # --- 6. Admin & System ---
         app_bot.add_handler(CommandHandler("broadcast", broadcast.broadcast))
@@ -129,10 +112,14 @@ if __name__ == '__main__':
         # --- 7. EVENTS & LISTENERS ---
         app_bot.add_handler(ChatMemberHandler(events.chat_member_update, ChatMemberHandler.MY_CHAT_MEMBER))
         app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
+        
+        # WordSeek Guess Listener (Group 3 mein rakha hai taaki Chatbot se pehle check ho)
+        app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, wordseek.guess), group=3)
+        
+        # Baaki listeners
         app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.collect_waifu), group=1)
-        app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, collection.check_drops), group=2)
         app_bot.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot.ai_message_handler), group=4)
         app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=5)
 
-        print("🚀 ZEXX Mafia Bot is LIVE!")
+        print("🚀 ZEXX Mafia Bot with WordSeek is LIVE!")
         app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
