@@ -1,11 +1,13 @@
 from pymongo import MongoClient
 import certifi
+from datetime import datetime, timedelta
 from baka.config import MONGO_URI
 
 # ===============================================
 # DATABASE CONNECTION
 # ===============================================
 
+# SSL certificate verify karne ke liye certifi use kiya hai
 RyanBaka = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = RyanBaka["bakabot_db"]
 
@@ -19,8 +21,6 @@ sudoers_collection = db["sudoers"]
 chatbot_collection = db["chatbot"]
 riddles_collection = db["riddles"]
 mafia_collection = db["mafia"]
-
-# 🆕 WORDSEEK COLLECTION (Permanent Game Storage)
 wordseek_collection = db["wordseek"]
 
 # ===============================================
@@ -71,20 +71,20 @@ def ws_start_game(chat_id, word):
             "$set": {
                 "chat_id": chat_id,
                 "active": True,
-                "word": word,
+                "word": word.upper(),
                 "board": [],
+                "revealed_indices": [], # Hint track karne ke liye
+                "start_time": datetime.now()
             }
         },
         upsert=True
     )
-
 
 # 🔹 Get Active Game
 def ws_get_game(chat_id):
     return wordseek_collection.find_one(
         {"chat_id": chat_id, "active": True}
     )
-
 
 # 🔹 Update Board
 def ws_update_board(chat_id, board):
@@ -93,7 +93,6 @@ def ws_update_board(chat_id, board):
         {"$set": {"board": board}}
     )
 
-
 # 🔹 End Game
 def ws_end_game(chat_id):
     wordseek_collection.update_one(
@@ -101,19 +100,56 @@ def ws_end_game(chat_id):
         {"$set": {"active": False}}
     )
 
-
-# 🔹 Add Win to Leaderboard
-def ws_add_win(chat_id, user_id):
+# 🔹 Update Hint Indices
+def ws_update_hints(chat_id, revealed_indices):
     wordseek_collection.update_one(
         {"chat_id": chat_id},
-        {"$inc": {f"leaderboard.{user_id}": 1}},
+        {"$set": {"revealed_indices": revealed_indices}}
+    )
+
+# 🔹 Add Win to Leaderboard (With Name Storage)
+def ws_add_win(chat_id, user_id, first_name):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {
+            "$inc": {f"leaderboard.{user_id}.wins": 1},
+            "$set": {f"leaderboard.{user_id}.name": first_name}
+        },
         upsert=True
     )
 
-
-# 🔹 Get Leaderboard
+# 🔹 Get Leaderboard Data
 def ws_get_leaderboard(chat_id):
     data = wordseek_collection.find_one({"chat_id": chat_id})
     if data and "leaderboard" in data:
         return data["leaderboard"]
     return {}
+
+# 🔹 Weekly Hint Limit Logic (2 per week)
+def can_user_get_hint(chat_id, user_id):
+    doc = wordseek_collection.find_one({"chat_id": chat_id})
+    if not doc:
+        return True, None
+    
+    # User ki hint history nikalo
+    hint_users = doc.get("hint_users", {})
+    history = hint_users.get(str(user_id), [])
+    
+    now = datetime.now()
+    one_week_ago = now - timedelta(weeks=1)
+    
+    # Sirf pichle 7 din ke timestamps rakho
+    active_hints = [h for h in history if h > one_week_ago]
+    
+    if len(active_hints) >= 2:
+        # Agar 2 hints ho chuke hain, toh sabse purane hint ka time return karo
+        return False, active_hints[0]
+        
+    # Naya hint time add karo
+    active_hints.append(now)
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {"$set": {f"hint_users.{user_id}": active_hints}},
+        upsert=True
+    )
+    return True, None
