@@ -82,9 +82,6 @@ async def new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ensure_user_exists(member)
             group_data = groups_collection.find_one({"chat_id": chat.id})
             
-            if group_data and group_data.get("welcome_enabled"):
-                greetings = ["Hello", "Hiii", "Welcome", "Kon'nichiwa"]
-                greet = random.choice(greetings)
-                txt = f"👋 <b>{greet} {get_mention(member)}!</b>\n\nWelcome to <b>{chat.title}</b> 🌸\nDon't forget to /register!"
+                txt = f"Wᴇʟᴄᴏᴍᴇ{get_mention(member)}!</b>\n\n
                 try: await update.message.reply_photo(WELCOME_IMG_URL, caption=txt, parse_mode=ParseMode.HTML)
                 except: await update.message.reply_text(txt, parse_mode=ParseMode.HTML)
