@@ -36,12 +36,10 @@ async def post_init(application):
         ("help", "Command Diary"),
         ("bal", "Wallet & Rank"),
         ("daily", "Daily Reward"),
-        ("shop", "Item Shop"),
-        ("ranking", "Global Leaderboard"),
         ("word", "WordSeek Unlimited"),
         ("addchat", "Bulk Add Chatbot"),
-        ("draw", "AI Art Generation"),
-        ("marry", "Check Relationship Status"),
+        ("mafia", "Mafia Menu"),
+        ("mpromote", "Mafia Promote"),
     ])
 
 # ---------------- MAIN ----------------
@@ -51,13 +49,14 @@ if __name__ == '__main__':
     request = HTTPXRequest(connection_pool_size=20)
     app_bot = ApplicationBuilder().token(TOKEN).request(request).post_init(post_init).build()
 
-    # ========= 1. BASIC & MENU =========
+    # ========= 1. BASIC & CORE =========
     app_bot.add_handler(CommandHandler("start", start.start))
     app_bot.add_handler(CommandHandler("help", start.start))
     app_bot.add_handler(CommandHandler("ping", ping.ping))
     app_bot.add_handler(CommandHandler("update", admin.update_bot))
+    app_bot.add_handler(CommandHandler("broadcast", broadcast.broadcast))
 
-    # ========= 2. ECONOMY & REWARDS (From Screenshots) =========
+    # ========= 2. ECONOMY (As per Screenshots) =========
     app_bot.add_handler(CommandHandler("bal", economy.balance))
     app_bot.add_handler(CommandHandler("daily", daily.daily))
     app_bot.add_handler(CommandHandler("shop", shop.shop_menu))
@@ -65,18 +64,26 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("give", economy.transfer))
     app_bot.add_handler(CommandHandler("claim", economy.claim_bonus))
 
-    # ========= 3. MURDER & STEAL (Action Games) =========
+    # ========= 3. ACTION & MURDER (As per Screenshots) =========
     app_bot.add_handler(CommandHandler("kill", game.kill))
     app_bot.add_handler(CommandHandler("rob", game.rob))
     app_bot.add_handler(CommandHandler("revive", game.revive))
     app_bot.add_handler(CommandHandler("protect", shop.buy_immunity))
 
-    # ========= 4. WORDSEEK (Unlimited Loop) =========
+    # ========= 4. MAFIA SYSTEM (ZEXX Edition) =========
+    app_bot.add_handler(CommandHandler("mafia", mafia.mafia_menu))
+    app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
+    app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
+    app_bot.add_handler(CommandHandler("mpromote", mafia.promote_member)) # Mafia Promote
+    app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
+    app_bot.add_handler(CommandHandler("team_leaderboard", mafia.team_leaderboard))
+
+    # ========= 5. WORDSEEK (Unlimited Loop) =========
     app_bot.add_handler(CommandHandler("word", wordseek.start_game))
     app_bot.add_handler(CommandHandler("hint", wordseek.get_hint))
     app_bot.add_handler(CommandHandler("leaderboard", wordseek.leaderboard))
 
-    # ========= 5. RELATIONSHIPS (Waifu & Marry) =========
+    # ========= 6. RELATIONSHIPS (Marry/Match) =========
     app_bot.add_handler(CommandHandler("couple", social.match_maker))
     app_bot.add_handler(CommandHandler("marry", social.check_status))
     app_bot.add_handler(CommandHandler("propose", social.propose))
@@ -84,34 +91,29 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("wpropose", waifu.propose))
     app_bot.add_handler(CommandHandler("wmarry", waifu.random_marry))
 
-    # ========= 6. AI & MEDIA =========
+    # ========= 7. AI & CHATBOT TOOLS =========
     app_bot.add_handler(CommandHandler("draw", ai_media.generate))
     app_bot.add_handler(CommandHandler("speak", ai_media.voice))
-    app_bot.add_handler(CommandHandler("chatbot", chatbot.settings)) # AI Settings
+    app_bot.add_handler(CommandHandler("chatbot", chatbot.settings))
     app_bot.add_handler(CommandHandler("addchat", chatbot.add_chat_handler)) # Bulk Add
 
-    # ========= 7. FUN & GAMES =========
-    app_bot.add_handler(CommandHandler("dice", fun.roll)) # Gamble
+    # ========= 8. FUN & GAMES =========
+    app_bot.add_handler(CommandHandler("dice", fun.roll))
+    app_bot.add_handler(CommandHandler("roll", fun.roll))
+    app_bot.add_handler(CommandHandler("truth", fun.truth))
     app_bot.add_handler(CommandHandler("riddle", riddle.riddle))
     app_bot.add_handler(CommandHandler("answer", riddle.answer))
-
-    # ========= 8. MAFIA SYSTEM =========
-    app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
-    app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
-    app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
-    app_bot.add_handler(CommandHandler("team_leaderboard", mafia.team_leaderboard))
 
     # ========= 9. CALLBACKS & LISTENERS =========
     app_bot.add_handler(CallbackQueryHandler(start.menu_callback))
 
-    # MESSAGE LISTENERS (Priority Based)
-    # Group 0: WordSeek Guess (Sabse pehle check hoga)
+    # Priority 0: WordSeek Guess
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, wordseek.guess), group=0)
     
-    # Group 1: Waifu Collection
+    # Priority 1: Waifu Collection
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.collect_waifu), group=1)
 
-    # Group 5: Chatbot AI (Replies to text/stickers)
+    # Priority 5: Chatbot AI (ZEXX Learner)
     app_bot.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot.ai_message_handler), group=5)
 
     # ========= 10. EVENTS =========
@@ -119,6 +121,6 @@ if __name__ == '__main__':
     app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=10)
 
-    print(f"✅ {BOT_NAME} ZEXX EDITION: ALL COMMANDS INTEGRATED SUCCESSFULLY!")
+    print(f"✅ {BOT_NAME} UPDATED: ALL SCREENSHOT COMMANDS LOADED!")
     
     app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
