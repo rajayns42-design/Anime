@@ -21,7 +21,7 @@ from baka.plugins import (
     start, economy, game, admin, broadcast, fun, events, 
     welcome, ping, chatbot, riddle, social, ai_media, 
     waifu, collection, shop, daily, 
-    mafia, wordseek  # <--- WordSeek Plugin
+    mafia, wordseek 
 )
 
 # --- FLASK SERVER (Health Check) ---
@@ -45,6 +45,9 @@ async def post_init(application):
         ("hint", "💡 Get Hint (2/week)"),
         ("leaderboard", "🏆 WordSeek Ranking"),
         ("bal", "👛 Check Wallet"), 
+        ("create_team", "🏢 Create Your Team"), 
+        ("team_war", "⚔️ Start Team War"),
+        ("team_leaderboard", "🏆 Top Mafia Teams"),
         ("ranking", "🏆 Global Leaderboard"), 
         ("daily", "📅 Daily Reward"),
         ("shop", "🛒 Item Shop"),
@@ -89,13 +92,21 @@ if __name__ == '__main__':
         app_bot.add_handler(CommandHandler("shop", shop.shop_menu))
         app_bot.add_handler(CommandHandler("kill", game.kill))
 
-        # --- 4. Mafia System ---
+        # --- 4. 🕶️ MAFIA / TEAM SYSTEM (Added Missing Handlers) ---
         app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
+        app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
+        app_bot.add_handler(CommandHandler("promote_member", mafia.promote_member))
+        app_bot.add_handler(CommandHandler("kick_member", mafia.kick_member))
+        app_bot.add_handler(CommandHandler("leave_team", mafia.leave_team))
+        app_bot.add_handler(CommandHandler("t_deposit", mafia.team_deposit))
+        app_bot.add_handler(CommandHandler("t_withdraw", mafia.team_withdraw))
+        app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
         app_bot.add_handler(CommandHandler("arena", mafia.arena_fight))
+        app_bot.add_handler(CommandHandler("team_leaderboard", mafia.team_leaderboard))
 
         # --- 5. LISTENERS & MESSAGE HANDLERS ---
-        
-        # Priority Group 0: WordSeek Guesses (Sabse pehle check hoga)
+
+        # Priority Group 0: WordSeek Guesses (High Priority)
         app_bot.add_handler(MessageHandler(
             filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, 
             wordseek.guess
@@ -107,7 +118,7 @@ if __name__ == '__main__':
             collection.collect_waifu
         ), group=1)
 
-        # Priority Group 4: Chatbot AI (Last mein check hoga)
+        # Priority Group 4: Chatbot AI (Low Priority)
         app_bot.add_handler(MessageHandler(
             (filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, 
             chatbot.ai_message_handler
@@ -118,5 +129,5 @@ if __name__ == '__main__':
         app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
         app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=5)
 
-        print(f"🚀 {BOT_NAME} is LIVE with WordSeek!")
+        print(f"🚀 {BOT_NAME} is LIVE with Mafia & WordSeek!")
         app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
