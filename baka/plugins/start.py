@@ -27,9 +27,9 @@ def get_start_keyboard(bot_username):
 
 def get_help_keyboard():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💍 𝐒𝐨𝐜𝐢𝐚𝐥", callback_data="help_social"), InlineKeyboardButton("💰 𝐄𝐜𝐨𝐧𝐨𝐦𝐲", callback_data="help_economy")],
-        [InlineKeyboardButton("⚔️ 𝐑𝐏𝐆", callback_data="help_rpg"), InlineKeyboardButton("🧠 𝐀𝐈 & 𝐅𝐮𝐧", callback_data="help_fun")],
-        [InlineKeyboardButton("⚙️ 𝐆𝐫𝐨𝐮𝐩", callback_data="help_group"), InlineKeyboardButton("🔐 𝐒𝐮𝐝𝐨", callback_data="help_sudo")],
+        [InlineKeyboardButton("💍 𝐒𝐨𝐜𝐢𝐚𝐥", callback_data="help_social"),                          InlineKeyboardButton("💰 𝐄𝐜𝐨𝐧𝐨𝐦𝐲",  callback_data="help_economy")],
+        [InlineKeyboardButton("⚔️ 𝐑𝐏𝐆", callback_data="help_rpg"),      InlineKeyboardButton("🧠 𝐀𝐈 & 𝐅𝐮𝐧", callback_data="help_fun")],
+           [InlineKeyboardButton("⚙️ 𝐆𝐫𝐨𝐮𝐩", callback_data="help_group"), InlineKeyboardButton("🔐 𝐒𝐮𝐝𝐨", callback_data="help_sudo")],
         [InlineKeyboardButton("🔙 𝐁𝐚𝐜𝐤", callback_data="return_start")]
     ])
 
