@@ -121,5 +121,5 @@ if __name__ == '__main__':
         app_bot.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot.ai_message_handler), group=4)
         app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=5)
 
-        print("🚀 ZEXX Mafia Bot with WordSeek is LIVE!")
+        print("🚀 ZEXX Angel Bot is LIVE!")
         app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
