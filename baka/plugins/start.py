@@ -48,8 +48,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     caption = (
         f"❖ Hʏ {get_mention(user)}\n\n"
         f"I Aᴍ <b>{BOT_NAME}</b>\n"
-        f"Tʜᴇ Aᴇꜱᴛʜᴇᴛɪᴄ  Aɪ Rᴩɢ & Uʟᴛɪᴍᴀᴛᴇ ɢᴀᴍᴇ'ꜱ  Bᴏᴛ\n\n"
-   f"━━━━━━━━━━━━━━━\n"
+        f"Tʜᴇ Aᴇꜱᴛʜᴇᴛɪᴄ  Aɪ Rᴩɢ & Uʟᴛɪᴍᴀᴛᴇ ɢᴀᴍᴇ'ꜱ  Bᴏᴛ\n\n"f"━━━━━━━━━━━━━━━\n"
         f"🎮 Fᴇᴀᴛᴜʀᴇꜱ\n\n"
         f"⚔️ Rᴩɢ : Kɪʟʟ•Pʀᴏᴛᴇᴄᴛ•Rᴇᴠɪᴠᴇ\n"
         f"💗 Sᴏᴄɪᴀʟ : M𝐀ᴀʀʀʏ•Cᴏᴜᴩʟᴇ• Wᴀɪꜰᴜ\n"
