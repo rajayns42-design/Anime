@@ -82,6 +82,6 @@ async def new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ensure_user_exists(member)
             group_data = groups_collection.find_one({"chat_id": chat.id})
             
-                txt = f"Wᴇʟᴄᴏᴍᴇ{get_mention(member)}!</b>\n\n
+                txt = f"Wᴇʟᴄᴏᴍᴇ{get_mention(member)}!</b>\n\n"
                 try: await update.message.reply_photo(WELCOME_IMG_URL, caption=txt, parse_mode=ParseMode.HTML)
                 except: await update.message.reply_text(txt, parse_mode=ParseMode.HTML)
