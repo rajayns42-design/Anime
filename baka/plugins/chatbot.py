@@ -10,7 +10,7 @@ from baka.database import chatbot_collection, add_chat_to_db, get_chat_response
 # =====================================
 # ⚙️ 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐓𝐈𝐎𝐍
 # =====================================
-OWNER_ID = 8211189367 
+OWNER_ID = 8321028072
 
 async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -25,7 +25,7 @@ async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
-        return await update.message.reply_text("<b>❌ ye only owner (ZEXX) ke liye hai baby 💀!</b>", parse_mode=ParseMode.HTML)
+        return await update.message.reply_text("<b>❌ ye only owner baby 💀!</b>", parse_mode=ParseMode.HTML)
     try:
         args = " ".join(context.args)
         if "|" not in args: raise ValueError
