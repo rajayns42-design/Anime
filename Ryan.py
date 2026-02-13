@@ -98,9 +98,9 @@ if __name__ == '__main__':
     
       
     # 🎲 THE DICE HANDLER (Fixed for Crash)
-    app_bot.add_handler(CommandHandler("dice", fun.roll))  
+    app_bot.add_handler(CommandHandler("dice", fun.dice)) 
     
-    
+   
     app_bot.add_handler(CommandHandler("speak", ai_media.speak))
     app_bot.add_handler(CommandHandler("draw", ai_media.generate))
 
