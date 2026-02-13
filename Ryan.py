@@ -101,8 +101,8 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("dice", fun.dice)) 
     
    
-    app_bot.add_handler(CommandHandler("speak", ai_media.speak))
-    app_bot.add_handler(CommandHandler("draw", ai_media.generate))
+    app_bot.add_handler(CommandHandler("speak", ai_media.speak_command))
+    app_bot.add_handler(CommandHandler("draw", ai_media.draw_command))
 
     # ========= 6. SYSTEM CALLBACKS =========
     app_bot.add_handler(CallbackQueryHandler(start.menu_callback, pattern="^start_"))
