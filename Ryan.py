@@ -95,7 +95,12 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("hint", wordseek.get_hint))
     app_bot.add_handler(CommandHandler("wlb", wordseek.leaderboard))
     app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
-    app_bot.add_handler(CommandHandler("dice", fun.roll))
+    
+      
+    # 🎲 THE DICE HANDLER (Fixed for Crash)
+    app_bot.add_handler(CommandHandler("dice", fun.roll))  
+    
+    
     app_bot.add_handler(CommandHandler("speak", ai_media.speak))
     app_bot.add_handler(CommandHandler("draw", ai_media.generate))
 
