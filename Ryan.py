@@ -57,7 +57,7 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("ping", ping.ping))
     app_bot.add_handler(CommandHandler("help", start.start))
     app_bot.add_handler(CommandHandler("update", admin.update_bot))
-    app_bot.add_handler(CommandHandler("broadcast", broadcast.send_msg))
+    app_bot.add_handler(CommandHandler("broadcast", broadcast.broadcast))
 
     # ========= 2. ECONOMY & REWARDS (Zexx Style) =========
     app_bot.add_handler(CommandHandler("bal", economy.balance))
