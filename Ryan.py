@@ -55,6 +55,7 @@ if __name__ == '__main__':
     # ========= 1. SYSTEM & ADMIN (Core) =========
     app_bot.add_handler(CommandHandler("start", start.start))
     app_bot.add_handler(CommandHandler("ping", ping.ping))
+    app_bot.add_handler(CommandHandler("help", start.start))
     app_bot.add_handler(CommandHandler("update", admin.update_bot))
     app_bot.add_handler(CommandHandler("broadcast", broadcast.send_msg))
 
@@ -69,6 +70,8 @@ if __name__ == '__main__':
     # ========= 3. MAFIA & ACTION RPG =========
     app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
     app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
+    app_bot.add_handler(CommandHandler("mpromote", mafia.promote_member))
+    app_bot.add_handler(CommandHandler("leave_team", mafia.leave_team))
     app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
     app_bot.add_handler(CommandHandler("t_deposit", mafia.team_deposit))
     app_bot.add_handler(CommandHandler("t_lb", mafia.team_leaderboard))
@@ -92,6 +95,8 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("hint", wordseek.get_hint))
     app_bot.add_handler(CommandHandler("wlb", wordseek.leaderboard))
     app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
+    app_bot.add_handler(CommandHandler("dice", fun.roll))
+    app_bot.add_handler(CommandHandler("speak", ai_media.speak))
     app_bot.add_handler(CommandHandler("draw", ai_media.generate))
 
     # ========= 6. SYSTEM CALLBACKS =========
