@@ -104,6 +104,19 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("speak", ai_media.speak_command))
     app_bot.add_handler(CommandHandler("draw", ai_media.draw_command))
 
+    # ========= 🤖 CHATBOT & AI SECTION =========
+    
+    # Toggle handle karne ke liye (on/off)
+    app_bot.add_handler(CommandHandler("chatbot", chatbot.chatbot_toggle)) 
+
+    # Missing functions fix (AttributeError rokne ke liye)
+    app_bot.add_handler(CommandHandler("ask", chatbot.ask_ai))
+    app_bot.add_handler(CallbackQueryHandler(chatbot.chatbot_callback, pattern="^cb_"))
+
+    # Chatbot Owner Commands
+    app_bot.add_handler(CommandHandler("addchat", chatbot.add_chat))
+    app_bot.add_handler(CommandHandler("bulkadd", chatbot.bulk_add))
+    
     # ========= 6. SYSTEM CALLBACKS =========
     app_bot.add_handler(CallbackQueryHandler(start.menu_callback, pattern="^start_"))
     app_bot.add_handler(CallbackQueryHandler(shop.shop_callback, pattern="^shop_"))
@@ -117,14 +130,18 @@ if __name__ == '__main__':
     # P2: Waifu Drops (Har 100 msg ke baad)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.check_drops), group=2)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.collect_waifu), group=3)
-    # P4: Riddle Answer
-    app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, riddle.check_riddle_answer), group=4)
-    # P5: Chatbot Learning & AI Reply
-    app_bot.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot.ai_message_handler), group=5)
+            # ... upar ka code (Line 134 tak) ...
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_answer))
+
+    # ========= 📩 MESSAGE LISTENERS (Fixed) =========
+    # Ye hamesha sabse niche hona chahiye listeners mein
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=5)
+
 
     # ========= 8. LOGS & EVENTS =========
     app_bot.add_handler(ChatMemberHandler(events.chat_member_update))
     app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
 
-    print(f"✅ {BOT_NAME} ZEXX FINAL EDITION IS NOW FULLY OPERATIONAL!")
+    # Final Launch
+    print(f"✅ {BOT_NAME} ZEXX FINAL EDITION IS ONLINE!")
     app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
