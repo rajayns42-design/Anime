@@ -120,7 +120,7 @@ if __name__ == '__main__':
     # ========= 6. SYSTEM CALLBACKS =========
     app_bot.add_handler(CallbackQueryHandler(start.help_callback, pattern="^start_|^help_|^return_"))
     app_bot.add_handler(CallbackQueryHandler(shop.shop_callback, pattern="^shop_"))
-    app_bot.add_handler(CallbackQueryHandler(social.propose_callback, pattern="^prop_"))
+    app_bot.add_handler(CallbackQueryHandler(social.proposal_callback, pattern="^marry_"))
 
     # ========= 7. MESSAGE LISTENERS (Strict Priority) =========
     # P0: WordSeek (Fast Guessing)
