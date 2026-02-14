@@ -131,7 +131,7 @@ if __name__ == '__main__':
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.check_drops), group=2)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.collect_waifu), group=3)
             # ... upar ka code (Line 134 tak) ...
-    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_answer))
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_riddle_answer))
 
     # ========= 📩 MESSAGE LISTENERS (Fixed) =========
     # Ye hamesha sabse niche hona chahiye listeners mein
