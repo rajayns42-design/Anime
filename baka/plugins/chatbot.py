@@ -27,6 +27,24 @@ async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # 🛠️ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒
 # =====================================
 
+# Ye function aapke AttributeError ko fix karega
+async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles /ask command for specific queries"""
+    if not update.effective_message or not context.args:
+        return await update.effective_message.reply_text("<b>📌 USAGE:</b> <code>/ask hello</code>", parse_mode=ParseMode.HTML)
+
+    query = " ".join(context.args).lower().strip()
+    response = get_chat_response(query)
+    
+    if response:
+        user_name = update.effective_user.first_name
+        reply = random.choice(response) if isinstance(response, list) else response
+        if "{name}" in reply:
+            reply = reply.replace("{name}", f"<b>{user_name}</b>")
+        await update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
+    else:
+        await update.effective_message.reply_text("<b>❌ Sorry baby, mere pass iska jawab nahi hai.</b>", parse_mode=ParseMode.HTML)
+
 async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Adds words to database (Owner Only)"""
     if update.effective_user.id != OWNER_ID:
@@ -78,17 +96,12 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         is_enabled = doc.get("enabled", True) if doc else True
         if not is_enabled:
             return
-    # Private chat mein hamesha ON rahega
 
     # 2. Database Response Fetching
     responses = get_chat_response(text)
     
     if responses:
-        # Check if responses is a list, then pick random
         reply = random.choice(responses) if isinstance(responses, list) else responses
-        
-        # Replace {name} placeholder
         if "{name}" in reply:
             reply = reply.replace("{name}", f"<b>{user_name}</b>")
-        
         await msg.reply_text(reply, parse_mode=ParseMode.HTML)
