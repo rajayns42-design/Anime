@@ -23,6 +23,7 @@ chatbot_collection = db["chatbot"]
 riddles_collection = db["riddles"]
 mafia_collection = db["mafia"]
 wordseek_collection = db["wordseek"]
+wins_collection = db["wordseek_wins"] # Leaderboard ke liye naya collection
 
 # ===============================================
 # CHATBOT FUNCTIONS (Private & Group Support)
@@ -84,18 +85,37 @@ def ws_get_game(chat_id):
     """Active game ka data nikalne ke liye"""
     return wordseek_collection.find_one({"chat_id": chat_id, "active": True})
 
-def ws_update_board(chat_id, board, revealed_indices):
-    """Board aur revealed indices ko update karne ke liye (Error Fix)"""
+def ws_update_board(chat_id, board, revealed_indices=None):
+    """Board aur revealed indices ko update karne ke liye"""
+    update_data = {"board": board}
+    if revealed_indices is not None:
+        update_data["revealed_indices"] = revealed_indices
+        
     wordseek_collection.update_one(
         {"chat_id": chat_id, "active": True},
-        {
-            "$set": {
-                "board": board,
-                "revealed_indices": revealed_indices
-            }
-        }
+        {"$set": update_data}
     )
 
 def ws_end_game(chat_id):
     """Game khatam karne ke liye"""
     wordseek_collection.update_one({"chat_id": chat_id}, {"$set": {"active": False}})
+
+# ===============================================
+# LEADERBOARD FUNCTIONS (Naya Add Kiya Gaya)
+# ===============================================
+
+def ws_add_win(chat_id, user_id, name):
+    """Winner ki wins count update karne ke liye"""
+    wins_collection.update_one(
+        {"chat_id": chat_id},
+        {
+            "$inc": {f"players.{user_id}.wins": 1},
+            "$set": {f"players.{user_id}.name": name}
+        },
+        upsert=True
+    )
+
+def ws_get_leaderboard(chat_id):
+    """Leaderboard data fetch karne ke liye"""
+    data = wins_collection.find_one({"chat_id": chat_id})
+    return data.get("players", {}) if data else {}
