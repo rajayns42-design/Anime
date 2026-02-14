@@ -58,7 +58,7 @@ async def chatbot_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Fixes AttributeError in Ryan.py line 171"""
-    await update.message.reply_text("<b>❌ AI system disabled for speed!</b>\nMain database replies use kar raha hoon baby.", parse_mode=ParseMode.HTML)
+    await update.message.reply_text("<b>❌ AI system disabled for speed!</b>\nAi baby.", parse_mode=ParseMode.HTML)
 
 async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Fixes AttributeError in Ryan.py line 172"""
@@ -88,7 +88,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     # Identity Check
     if any(x in text for x in ["owner", "malik", "admin", "creator"]):
-        return await msg.reply_text(f"『 𝐇ᴀʀɪ 』</b> hain!", parse_mode=ParseMode.HTML)
+        return await msg.reply_text(f"『 𝐇ᴀʀɪ 』</b>", parse_mode=ParseMode.HTML)
 
     # Status Check
     if update.effective_chat.type != ChatType.PRIVATE:
