@@ -39,7 +39,7 @@ async def post_init(application):
         ("mafia", "Mafia Menu"),
         ("create_team", "Create Team"),
         ("team_war", "Mafia War"),
-        ("riddle", "AI Riddle"),
+        ("riddle", "Riddle"),
         ("couple", "Match Making"),
         ("wpropose", "Waifu Marriage"),
         ("shop", "Item Shop")
