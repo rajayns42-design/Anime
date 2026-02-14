@@ -1,5 +1,5 @@
-# Copyright (c) 2025 Telegram:- @WTF_Phantom <DevixOP>
-# Edited for Malik: ZEXX
+# Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
+# Edited for Malik: ZEXX (Unlimited Riddles)
 
 import random
 from telegram import Update
@@ -38,18 +38,17 @@ async def riddle_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if chat.type == ChatType.PRIVATE: 
         return await update.message.reply_text("❌ <b>Group Only!</b>", parse_mode=ParseMode.HTML)
 
-    if riddles_collection.find_one({"chat_id": chat.id}):
-        return await update.message.reply_text("⚠️ A riddle is already active!", parse_mode=ParseMode.HTML)
-
-    # Fast selection from local list
+    # UNLIMITED: Purani riddle check nahi karega, seedha nayi bhejega
     selected = random.choice(RIDDLES)
     question = selected['q']
     answer = selected['a'].lower()
 
+    # Nayi riddle insert karne se pehle purani clear kar dega
+    riddles_collection.delete_many({"chat_id": chat.id})
     riddles_collection.insert_one({"chat_id": chat.id, "answer": answer})
 
     await update.message.reply_text(
-        f"🧩 <b>𝐀𝐈 𝐑𝐢𝐝𝐝𝐥𝐞 𝐂𝐡𝐚𝐥𝐥𝐞𝐧𝐠𝐞!</b>\n\n"
+        f"🧩 <b>𝐀𝐈 𝐑𝐢𝐝𝐝𝐥𝐞 𝐂𝐡𝐚𝐥𝐥𝐞𝐧𝐠𝐞! (𝐔𝐧𝐥𝐢𝐦𝐢𝐭𝐞𝐝)</b>\n\n"
         f"<i>{question}</i>\n\n"
         f"💡 <b>Reward:</b> <code>{format_money(RIDDLE_REWARD)}</code>\n"
         f"👇 <i>Reply with your answer!</i>",
@@ -68,6 +67,7 @@ async def check_riddle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE
         user = update.effective_user
         ensure_user_exists(user)
 
+        # Dynamic Reward (Optional: Reward ko thoda random bhi kar sakte ho)
         users_collection.update_one({"user_id": user.id}, {"$inc": {"balance": RIDDLE_REWARD}})
         riddles_collection.delete_one({"chat_id": chat.id})
 
