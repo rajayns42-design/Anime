@@ -92,7 +92,6 @@ if __name__ == '__main__':
 
     # ========= 5. FUN & GAMES =========
     app_bot.add_handler(CommandHandler("word", wordseek.start_game))
-    app_bot.add_handler(CommandHandler("hint", wordseek.get_hint))
     app_bot.add_handler(CommandHandler("wlb", wordseek.leaderboard))
     app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
     
