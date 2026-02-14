@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Edited for Malik: ZEXX (Auto-Reset & No Mention)
+# Edited for Malik: ZEXX (Timar + Leaderboard)
 
 import random
 from datetime import datetime
@@ -14,7 +14,7 @@ from baka.database import (
 
 WORDS = ["APPLE", "HEART", "SMILE", "TIGER", "QUEEN", "ANGEL", "DREAM", "LIGHT", "WORLD", "BRUSH", "CANDY", "GHOST", "PIZZA", "STORM", "WATER"]
 
-# --- ⏰ BACKGROUND AUTO-END (AGAR KOI WINNER NA MILE) ---
+# --- ⏰ BACKGROUND AUTO-END ---
 async def auto_end_game(context: ContextTypes.DEFAULT_TYPE):
     job = context.job
     chat_id = job.chat_id
@@ -22,37 +22,29 @@ async def auto_end_game(context: ContextTypes.DEFAULT_TYPE):
     
     if game and game.get("active"):
         word = game["word"]
-        ws_end_game(chat_id) # Game data reset ho jayega
+        ws_end_game(chat_id)
         await context.bot.send_message(
             chat_id=chat_id,
-            text=f"⌛ <b>Time's Up!</b>\n\nKoi guess nahi kar paya. Sahi word tha: <b>{word}</b>\n\nAb naya game <b>/word</b> se shuru karein!",
+            text=f"⌛ <b>Time's Up!</b>\n\nSahi word tha: <b>{word}</b>\nNaya game <b>/word</b> se shuru karein!",
             parse_mode=ParseMode.HTML
         )
 
 # ================= START =================
 async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
-    if chat.type == "private": return await update.message.reply_text("❌ Groups mein khelo!")
-
-    # Purana game khatam hone ke baad hi naya start hoga
     if ws_get_game(chat.id):
         return await update.message.reply_text("⚠️ Ek game pehle se chal raha hai!")
 
     word = random.choice(WORDS)
     ws_start_game(chat.id, word) 
-    
-    # 1 minute ka invisible timer
     context.job_queue.run_once(auto_end_game, 60, chat_id=chat.id, name=f"ws_{chat.id}")
-
-    await update.message.reply_text("🎮 <b>WordSeek Started!</b>\nGuess the 5 letter word in 1 minute!", parse_mode=ParseMode.HTML)
+    await update.message.reply_text("🎮 <b>WordSeek Started!</b>\nGuess in 1 minute!", parse_mode=ParseMode.HTML)
 
 # ================= GUESS LOGIC =================
 async def guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat = update.effective_chat
-    user = update.effective_user
+    chat, user = update.effective_chat, update.effective_user
     if not update.message or not update.message.text: return
     text = update.message.text.upper().strip()
-
     if len(text) != 5 or not text.isalpha() or text.startswith('/'): return
 
     game = ws_get_game(chat.id)
@@ -63,20 +55,29 @@ async def guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
     board.append(f"{row} {text}")
     ws_update_board(chat.id, board)
     
-    board_text = "<b>WordSeek</b>\n" + "\n".join(board)
-
     if text == word:
-        # Winner milte hi timer cancel
+        # Timer stop aur winner update
         current_jobs = context.job_queue.get_jobs_by_name(f"ws_{chat.id}")
         for job in current_jobs: job.schedule_removal()
-        
-        ws_end_game(chat.id) # Database se active status clear
-        ws_add_win(chat.id, user.id, user.first_name) # Winner update
-        
-        await update.message.reply_text(
-            f"{board_text}\n\n🎉 <b>{user.first_name} WON!</b>\n\nAb aap <b>/word</b> karke naya game shuru kar sakte hain!", 
-            parse_mode=ParseMode.HTML
-        )
+        ws_end_game(chat.id)
+        ws_add_win(chat.id, user.id, user.first_name)
+        await update.message.reply_text(f"🎉 <b>{user.first_name} WON!</b>\n\nWins update ho gayi hain. Check: /wlb", parse_mode=ParseMode.HTML)
     else:
-        # Guess par koi tag nahi, sirf board
-        await context.bot.send_message(chat_id=chat.id, text=board_text, parse_mode=ParseMode.HTML)
+        await context.bot.send_message(chat_id=chat.id, text="<b>WordSeek</b>\n" + "\n".join(board), parse_mode=ParseMode.HTML)
+
+# ================= LEADERBOARD =================
+async def leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Database se top users fetch karega
+    lb_data = ws_get_leaderboard(update.effective_chat.id)
+    if not lb_data:
+        return await update.message.reply_text("📉 Abhi tak koi winner nahi hai!")
+
+    # Sorting wins ke hisaab se
+    sorted_lb = sorted(lb_data.items(), key=lambda x: x[1].get('wins', 0), reverse=True)
+    
+    text = "🏆 <b>WordSeek Leaderboard</b>\n\n"
+    for i, (uid, data) in enumerate(sorted_lb[:10], 1):
+        emoji = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+        text += f"{emoji} {data.get('name')} — <b>{data.get('wins')}</b> wins\n"
+    
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
