@@ -1,107 +1,92 @@
 # Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Fixed by Gemini: ZEXX Edition (Private + Group Support)
+# Fixed by Gemini: ZEXX Edition (Private + Group + Buttons Support)
 
 import random
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode, ChatType
 from baka.database import chatbot_collection, add_chat_to_db, get_chat_response
 
-# =====================================
-# ⚙️ 𝐂𝐎𝐍𝐅𝐈𝐆𝐔𝐑𝐀𝐓𝐈𝐎𝐍
-# =====================================
 OWNER_ID = 8321028072
 
 async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Checks if the user has permission to toggle chatbot"""
     user_id = update.effective_user.id
     if user_id == OWNER_ID: return True
     if update.effective_chat.type == ChatType.PRIVATE: return True
     try:
         member = await context.bot.get_chat_member(update.effective_chat.id, user_id)
         return member.status in ["creator", "administrator"]
-    except Exception:
-        return False
+    except Exception: return False
 
 # =====================================
-# 🛠️ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃𝐒
+# 🛠️ MISSING ATTRIBUTES (FIXED)
 # =====================================
 
-# Ye function aapke AttributeError ko fix karega
 async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles /ask command for specific queries"""
+    """Fixes AttributeError: 'ask_ai'"""
     if not update.effective_message or not context.args:
         return await update.effective_message.reply_text("<b>📌 USAGE:</b> <code>/ask hello</code>", parse_mode=ParseMode.HTML)
-
     query = " ".join(context.args).lower().strip()
     response = get_chat_response(query)
-    
     if response:
-        user_name = update.effective_user.first_name
         reply = random.choice(response) if isinstance(response, list) else response
-        if "{name}" in reply:
-            reply = reply.replace("{name}", f"<b>{user_name}</b>")
+        if "{name}" in reply: reply = reply.replace("{name}", f"<b>{update.effective_user.first_name}</b>")
         await update.effective_message.reply_text(reply, parse_mode=ParseMode.HTML)
     else:
-        await update.effective_message.reply_text("<b>❌ Sorry baby, mere pass iska jawab nahi hai.</b>", parse_mode=ParseMode.HTML)
+        await update.effective_message.reply_text("<b>❌ No response found baby.</b>", parse_mode=ParseMode.HTML)
+
+async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Fixes AttributeError: 'chatbot_callback'"""
+    query = update.callback_query
+    if not await is_admin_or_owner(update, context):
+        return await query.answer("Admin only baby!", show_alert=True)
+    
+    data = query.data.replace("cb_", "")
+    chat_id = update.effective_chat.id
+    
+    if data == "enable":
+        chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": True}}, upsert=True)
+        await query.edit_message_text("<b>✅ Chatbot Enabled!</b>", parse_mode=ParseMode.HTML)
+    elif data == "disable":
+        chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": False}}, upsert=True)
+        await query.edit_message_text("<b>📴 Chatbot Disabled!</b>", parse_mode=ParseMode.HTML)
+    await query.answer()
+
+# =====================================
+# 🚀 OTHER COMMANDS
+# =====================================
 
 async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Adds words to database (Owner Only)"""
     if update.effective_user.id != OWNER_ID:
-        return await update.message.reply_text("<b>❌ only owner baby 💀!</b>", parse_mode=ParseMode.HTML)
+        return await update.message.reply_text("<b>❌ Owner only!</b>", parse_mode=ParseMode.HTML)
     try:
         args = update.message.text.split(None, 1)[1]
-        if "|" not in args: raise ValueError
         word, response = args.split("|", 1)
         add_chat_to_db(word.strip().lower(), response.strip())
-        await update.message.reply_text(f"<b>✅ 『 SUCCESS 』\n\n🔹 WORD:</b> <code>{word.strip()}</code>\n<b>🔸 REPLY:</b> <code>{response.strip()}</code>", parse_mode=ParseMode.HTML)
-    except (ValueError, IndexError):
-        await update.message.reply_text("<b>📌 USAGE:</b> <code>/addchat hi | hello {name}</code>", parse_mode=ParseMode.HTML)
+        await update.message.reply_text("<b>✅ Added!</b>", parse_mode=ParseMode.HTML)
+    except:
+        await update.message.reply_text("<b>📌 Format:</b> <code>/addchat hi | hello</code>", parse_mode=ParseMode.HTML)
 
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Turns chatbot ON/OFF in groups"""
-    if not await is_admin_or_owner(update, context):
-        return await update.message.reply_text("<b>❌ Admins ya Owner only baby!</b>", parse_mode=ParseMode.HTML)
-    
-    if not context.args: 
-        return await update.message.reply_text("<b>📌 USAGE:</b> <code>/chatbot on/off</code>", parse_mode=ParseMode.HTML)
-    
-    chat_id = update.effective_chat.id
-    action = context.args[0].lower()
-    
-    if action == "on":
-        chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": True}}, upsert=True)
-        await update.message.reply_text("<b>✅ 『 CHATBOT ON 』\n\n🤖 Ab ayega maja baby 😉.</b>", parse_mode=ParseMode.HTML)
-    elif action == "off":
-        chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": False}}, upsert=True)
-        await update.message.reply_text("<b>📴 『 CHATBOT OFF 』\n\n🔇 baby off kr diye mujhe 🥺.</b>", parse_mode=ParseMode.HTML)
-
-# =====================================
-# 🚀 𝐌𝐄𝐒𝐒𝐀𝐆𝐄 𝐇𝐀𝐍𝐃𝐋𝐄𝐑
-# =====================================
+    """Shows buttons to turn chatbot on/off"""
+    keyboard = [
+        [InlineKeyboardButton("On ✅", callback_data="cb_enable"),
+         InlineKeyboardButton("Off 📴", callback_data="cb_disable")]
+    ]
+    await update.message.reply_text("<b>🤖 Chatbot Settings:</b>", 
+                                  reply_markup=InlineKeyboardMarkup(keyboard),
+                                  parse_mode=ParseMode.HTML)
 
 async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles both Private and Group messages"""
     msg = update.effective_message
-    if not msg or not msg.text or msg.text.startswith("/"): 
-        return
-
+    if not msg or not msg.text or msg.text.startswith("/"): return
     chat = update.effective_chat
-    text = msg.text.lower().strip()
-    user_name = msg.from_user.first_name
-
-    # 1. Chatbot Status Check
     if chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
         doc = chatbot_collection.find_one({"chat_id": f"settings_{chat.id}"})
-        is_enabled = doc.get("enabled", True) if doc else True
-        if not is_enabled:
-            return
-
-    # 2. Database Response Fetching
-    responses = get_chat_response(text)
+        if doc and not doc.get("enabled", True): return
     
+    responses = get_chat_response(msg.text.lower().strip())
     if responses:
         reply = random.choice(responses) if isinstance(responses, list) else responses
-        if "{name}" in reply:
-            reply = reply.replace("{name}", f"<b>{user_name}</b>")
+        if "{name}" in reply: reply = reply.replace("{name}", f"<b>{msg.from_user.first_name}</b>")
         await msg.reply_text(reply, parse_mode=ParseMode.HTML)
