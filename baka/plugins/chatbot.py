@@ -25,7 +25,7 @@ async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
-        return await update.message.reply_text("<b>❌ ye only owner baby 💀!</b>", parse_mode=ParseMode.HTML)
+        return await update.message.reply_text("<b>❌ only owner baby 💀!</b>", parse_mode=ParseMode.HTML)
     try:
         args = " ".join(context.args)
         if "|" not in args: raise ValueError
@@ -37,7 +37,7 @@ async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
-        return await update.message.reply_text("<b>❌ NO ACCESS! Only Malik ZEXX can use this.</b>", parse_mode=ParseMode.HTML)
+        return await update.message.reply_text("<b>❌ NO ACCESS! Only owner can use this.</b>", parse_mode=ParseMode.HTML)
     raw_data = " ".join(context.args)
     if not raw_data: return await update.message.reply_text("<b>📌 USAGE:</b> <code>/bulkadd hi=hello,bye=tata</code>", parse_mode=ParseMode.HTML)
     pairs = raw_data.split(",")
@@ -46,7 +46,7 @@ async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if "=" in pair:
             w, r = pair.split("=", 1)
             add_chat_to_db(w.strip().lower(), r.strip()); count += 1
-    await update.message.reply_text(f"<b>✅ 『 BULK ADDED 』\n\n✨ Malik ZEXX, <code>{count}</code> naye replies add ho gaye done baby 💗!</b>", parse_mode=ParseMode.HTML)
+    await update.message.reply_text(f"<b>✅ 『 BULK ADDED 』\n\n✨ Hari, <code>{count}</code> naye replies add ho gaye done baby 💗!</b>", parse_mode=ParseMode.HTML)
 
 # =====================================
 # 🚀 𝐇𝐄𝐑𝐎𝐊𝐔 𝐂𝐑𝐀𝐒𝐇 𝐅𝐈𝐗𝐄𝐒 (Missing Handlers)
@@ -88,7 +88,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     # Identity Check
     if any(x in text for x in ["owner", "malik", "admin", "creator"]):
-        return await msg.reply_text(f"Mere Malik <b>『 𝐙𝐄𝐗𝐗 』</b> hain!", parse_mode=ParseMode.HTML)
+        return await msg.reply_text(f"『 𝐇ᴀʀɪ 』</b> hain!", parse_mode=ParseMode.HTML)
 
     # Status Check
     if update.effective_chat.type != ChatType.PRIVATE:
