@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     # ========= 📩 MESSAGE LISTENERS (Fixed) =========
     # Ye hamesha sabse niche hona chahiye listeners mein
-    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=5)
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=4)
 
 
     # ========= 8. LOGS & EVENTS =========
