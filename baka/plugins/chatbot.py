@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Fixed by Gemini: ZEXX Edition (Private + Group + Buttons Support)
+# Fixed by Gemini: ZEXX Edition (Full Features + Crash Fix)
 
 import random
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -19,7 +19,7 @@ async def is_admin_or_owner(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception: return False
 
 # =====================================
-# 🛠️ MISSING ATTRIBUTES (FIXED)
+# 🛠️ ERROR FIXING FUNCTIONS (Missing Attributes)
 # =====================================
 
 async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -52,8 +52,26 @@ async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("<b>📴 Chatbot Disabled!</b>", parse_mode=ParseMode.HTML)
     await query.answer()
 
+async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Fixes AttributeError: 'bulk_add'"""
+    if update.effective_user.id != OWNER_ID:
+        return await update.message.reply_text("<b>❌ Owner only!</b>", parse_mode=ParseMode.HTML)
+    
+    if not update.message.reply_to_message or not update.message.reply_to_message.text:
+        return await update.message.reply_text("<b>📌 Reply to a text file or message with lines: word|response</b>", parse_mode=ParseMode.HTML)
+    
+    lines = update.message.reply_to_message.text.split('\n')
+    count = 0
+    for line in lines:
+        if "|" in line:
+            word, response = line.split("|", 1)
+            add_chat_to_db(word.strip().lower(), response.strip())
+            count += 1
+    
+    await update.message.reply_text(f"<b>✅ Successfully bulk added {count} responses!</b>", parse_mode=ParseMode.HTML)
+
 # =====================================
-# 🚀 OTHER COMMANDS
+# 🚀 CORE COMMANDS
 # =====================================
 
 async def add_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -81,10 +99,13 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     msg = update.effective_message
     if not msg or not msg.text or msg.text.startswith("/"): return
     chat = update.effective_chat
+    
+    # Group check
     if chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
         doc = chatbot_collection.find_one({"chat_id": f"settings_{chat.id}"})
         if doc and not doc.get("enabled", True): return
     
+    # Private and enabled groups
     responses = get_chat_response(msg.text.lower().strip())
     if responses:
         reply = random.choice(responses) if isinstance(responses, list) else responses
