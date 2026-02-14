@@ -13,7 +13,7 @@ RyanBaka = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = RyanBaka["bakabot_db"]
 
 # ===============================================
-# COLLECTIONS (Missing collections added back)
+# COLLECTIONS
 # ===============================================
 
 users_collection = db["users"]
@@ -40,7 +40,6 @@ def get_chat_response(word):
     """Database se random response nikalne ke liye"""
     data = chatbot_collection.find_one({"word": word.lower().strip()})
     if data and "responses" in data:
-        # Multiple responses mein se ek random select karega
         res = data["responses"]
         return random.choice(res) if isinstance(res, list) else res
     return None
@@ -57,7 +56,7 @@ def is_chatbot_enabled(chat_id):
     """Check karega ki chatbot enabled hai ya nahi"""
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     if doc:
-        return doc.get("enabled", True) # Default ON rahega agar doc nahi hai
+        return doc.get("enabled", True)
     return True
 
 # ===============================================
@@ -65,6 +64,7 @@ def is_chatbot_enabled(chat_id):
 # ===============================================
 
 def ws_start_game(chat_id, word):
+    """Naya Wordseek game start karne ke liye"""
     wordseek_collection.update_one(
         {"chat_id": chat_id},
         {
@@ -81,7 +81,21 @@ def ws_start_game(chat_id, word):
     )
 
 def ws_get_game(chat_id):
+    """Active game ka data nikalne ke liye"""
     return wordseek_collection.find_one({"chat_id": chat_id, "active": True})
 
+def ws_update_board(chat_id, board, revealed_indices):
+    """Board aur revealed indices ko update karne ke liye (Error Fix)"""
+    wordseek_collection.update_one(
+        {"chat_id": chat_id, "active": True},
+        {
+            "$set": {
+                "board": board,
+                "revealed_indices": revealed_indices
+            }
+        }
+    )
+
 def ws_end_game(chat_id):
+    """Game khatam karne ke liye"""
     wordseek_collection.update_one({"chat_id": chat_id}, {"$set": {"active": False}})
