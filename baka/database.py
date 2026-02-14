@@ -1,155 +1,63 @@
-from pymongo import MongoClient
-import certifi
-from datetime import datetime, timedelta
-from baka.config import MONGO_URI
+import random
+from telethon import events # Agar aap Telethon use kar rahe hain
+# Pyrogram ke liye: from pyrogram import filters
 
 # ===============================================
-# DATABASE CONNECTION
+# DATABASE LOGIC (REFIXED)
 # ===============================================
-
-# SSL certificate verify karne ke liye certifi use kiya hai
-RyanBaka = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
-db = RyanBaka["bakabot_db"]
-
-# ===============================================
-# COLLECTIONS
-# ===============================================
-
-users_collection = db["users"]
-groups_collection = db["groups"]
-sudoers_collection = db["sudoers"]
-chatbot_collection = db["chatbot"]
-riddles_collection = db["riddles"]
-mafia_collection = db["mafia"]
-wordseek_collection = db["wordseek"]
-
-# ===============================================
-# CHATBOT FUNCTIONS
-# ===============================================
-
-def add_chat_to_db(word, response):
-    chatbot_collection.update_one(
-        {"word": word.lower().strip()},
-        {"$addToSet": {"responses": response.strip()}},
-        upsert=True
-    )
-
-def get_chat_response(word):
-    data = chatbot_collection.find_one({"word": word.lower().strip()})
-    if data and "responses" in data:
-        return data["responses"]
-    return None
-
-def remove_chat_word(word):
-    chatbot_collection.delete_one({"word": word.lower().strip()})
-
-def toggle_chatbot_status(chat_id, status: bool):
-    chatbot_collection.update_one(
-        {"chat_id": f"settings_{chat_id}"},
-        {"$set": {"enabled": status}},
-        upsert=True
-    )
 
 def is_chatbot_enabled(chat_id):
-    doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
+    # Chat ID ko string mein convert karna best hai compatibility ke liye
+    doc = chatbot_collection.find_one({"chat_id": str(chat_id)})
     if doc:
-        return doc.get("enabled", True)
+        return doc.get("enabled", True) # By default ON rahega
     return True
 
-def get_chatbot_stats():
-    return chatbot_collection.count_documents({"word": {"$exists": True}})
+def get_chat_response(word):
+    # Word ko lowercase karke search karein
+    data = chatbot_collection.find_one({"word": word.lower().strip()})
+    if data and "responses" in data:
+        return random.choice(data["responses"]) # Ek random reply select karega
+    return None
 
 # ===============================================
-# WORDSEEK DATABASE FUNCTIONS (Permanent Edition)
+# MAIN HANDLER (PRIVATE & GROUP BOTH)
 # ===============================================
 
-# 🔹 Start New Group Game
-def ws_start_game(chat_id, word):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id},
-        {
-            "$set": {
-                "chat_id": chat_id,
-                "active": True,
-                "word": word.upper(),
-                "board": [],
-                "revealed_indices": [], # Hint track karne ke liye
-                "start_time": datetime.now()
-            }
-        },
-        upsert=True
-    )
+@bot.on(events.NewMessage)
+async def chatbot_logic(event):
+    # 1. Message ka text aur chat_id nikaalein
+    message_text = event.raw_text.lower().strip()
+    chat_id = event.chat_id
 
-# 🔹 Get Active Game
-def ws_get_game(chat_id):
-    return wordseek_collection.find_one(
-        {"chat_id": chat_id, "active": True}
-    )
+    # 2. Commands check karein (ON/OFF karne ke liye)
+    if message_text == "/chatbot on":
+        toggle_chatbot_status(chat_id, True)
+        await event.reply("✅ Chatbot is now **ON** for this chat.")
+        return
+    elif message_text == "/chatbot off":
+        toggle_chatbot_status(chat_id, False)
+        await event.reply("❌ Chatbot is now **OFF** for this chat.")
+        return
 
-# 🔹 Update Board
-def ws_update_board(chat_id, board):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"board": board}}
-    )
-
-# 🔹 End Game
-def ws_end_game(chat_id):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"active": False}}
-    )
-
-# 🔹 Update Hint Indices
-def ws_update_hints(chat_id, revealed_indices):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"revealed_indices": revealed_indices}}
-    )
-
-# 🔹 Add Win to Leaderboard (With Name Storage)
-def ws_add_win(chat_id, user_id, first_name):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id},
-        {
-            "$inc": {f"leaderboard.{user_id}.wins": 1},
-            "$set": {f"leaderboard.{user_id}.name": first_name}
-        },
-        upsert=True
-    )
-
-# 🔹 Get Leaderboard Data
-def ws_get_leaderboard(chat_id):
-    data = wordseek_collection.find_one({"chat_id": chat_id})
-    if data and "leaderboard" in data:
-        return data["leaderboard"]
-    return {}
-
-# 🔹 Weekly Hint Limit Logic (2 per week)
-def can_user_get_hint(chat_id, user_id):
-    doc = wordseek_collection.find_one({"chat_id": chat_id})
-    if not doc:
-        return True, None
-    
-    # User ki hint history nikalo
-    hint_users = doc.get("hint_users", {})
-    history = hint_users.get(str(user_id), [])
-    
-    now = datetime.now()
-    one_week_ago = now - timedelta(weeks=1)
-    
-    # Sirf pichle 7 din ke timestamps rakho
-    active_hints = [h for h in history if h > one_week_ago]
-    
-    if len(active_hints) >= 2:
-        # Agar 2 hints ho chuke hain, toh sabse purane hint ka time return karo
-        return False, active_hints[0]
+    # 3. Agar Chatbot Enable hai, toh reply check karein
+    if is_chatbot_enabled(chat_id):
+        # Database se reply dhoondein
+        reply = get_chat_response(message_text)
         
-    # Naya hint time add karo
-    active_hints.append(now)
-    wordseek_collection.update_one(
-        {"chat_id": chat_id},
-        {"$set": {f"hint_users.{user_id}": active_hints}},
-        upsert=True
-    )
-    return True, None
+        if reply:
+            await event.reply(reply)
+
+# ===============================================
+# ADDING WORDS (TAAKI BOT KUCH SEEKHE)
+# ===============================================
+
+@bot.on(events.NewMessage(pattern="/addchat (.+)"))
+async def add_chat(event):
+    input_str = event.pattern_match.group(1)
+    if "|" in input_str:
+        word, response = input_str.split("|", 1)
+        add_chat_to_db(word, response)
+        await event.reply(f"Done! Jab koi `{word.strip()}` bolega, main `{response.strip()}` kahunga.")
+    else:
+        await event.reply("Sahi format use karein: `/addchat hello | namaste`")
