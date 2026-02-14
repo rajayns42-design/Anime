@@ -33,12 +33,12 @@ async def auto_end_game(context: ContextTypes.DEFAULT_TYPE):
 async def start_game(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     if ws_get_game(chat.id):
-        return await update.message.reply_text("⚠️ Ek game pehle se chal raha hai!")
+        return await update.message.reply_text("⚠️  game All redy started!")
 
     word = random.choice(WORDS)
     ws_start_game(chat.id, word) 
     context.job_queue.run_once(auto_end_game, 60, chat_id=chat.id, name=f"ws_{chat.id}")
-    await update.message.reply_text("🎮 <b>WordSeek Started!</b>\nGuess in 1 minute!", parse_mode=ParseMode.HTML)
+    await update.message.reply_text("🎮 <b>WordSeek Started!</b>\nGame started! Guess the 5 letter word!", parse_mode=ParseMode.HTML)
 
 # ================= GUESS LOGIC =================
 async def guess(update: Update, context: ContextTypes.DEFAULT_TYPE):
