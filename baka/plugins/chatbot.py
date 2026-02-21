@@ -22,7 +22,7 @@ async def get_mistral_response(user_id, user_text):
     data = {
         "model": "mistral-tiny",
         "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": f"{user_text} (Don't repeat: {prev_reply})"}],
-        "max_tokens": 40,
+        "max_tokens": 20,
         "temperature": 0.8
     }
     try:
