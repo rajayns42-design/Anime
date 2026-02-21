@@ -19,7 +19,7 @@ async def get_mistral_response(user_id, user_text):
     # Ladki jaisa behavior set karne ke liye prompt
     system_prompt = (
         "You are a friendly Indian girl. Talk in short, natural Hinglish. "
-        "Use 1-2 emojis. Don't be formal. Don't repeat your last sentence. "
+        "Use 1 emojis. Don't be formal. Don't repeat your ak bar jo bol do dobara mat bolna wo word. "
         "Keep it sweet and casual, like a friend. No long paragraphs."
     )
 
@@ -33,7 +33,7 @@ async def get_mistral_response(user_id, user_text):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": full_prompt}
         ],
-        "max_tokens": 60,
+        "max_tokens": 20,
         "temperature": 0.8 # Thoda creative banane ke liye
     }
 
