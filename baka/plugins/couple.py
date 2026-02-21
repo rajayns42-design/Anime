@@ -70,7 +70,7 @@ async def couple_roll(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         caption = (
-            f"<b>💞 ZEXX JODI FINDER 💞</b>\n"
+            f"<b>💞 Mᴀᴛᴄʜɪɴɢ Cᴏᴜᴩʟᴇ 💞</b>\n"
             f"<code>━━━━━━━━━━━━━━━━━━</code>\n"
             f"🤵 <b>{user1.first_name}</b>\n"
             f"      <b>✖️</b>\n"
@@ -78,7 +78,7 @@ async def couple_roll(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📊 <b>Matching:</b> <code>{perc}%</code>\n"
             f"✨ <b>Verdict:</b> <i>{status}</i>\n"
             f"<code>━━━━━━━━━━━━━━━━━━</code>\n"
-            f"👉 <i>Neeche button dabao shadi fix karne ke liye!</i>"
+            f"💞 <i>Cʟɪᴄᴋ Tᴏ Mᴀɪʀʀᴀɢ 🥀</i>"
         )
 
         await msg.reply_photo(photo=output, caption=caption, reply_markup=reply_markup, parse_mode=ParseMode.HTML)
@@ -100,7 +100,7 @@ async def marriage_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     date = datetime.now().strftime("%d %B, %Y")
     
     certificate_text = (
-        f"<b>📜 REGISTRAR OF  LOVERS 📜</b>\n"
+        f"<b>📜 REGISTRAR OF LOVERS 📜</b>\n"
         f"━━━━━━━━━━━━━━━━━━━━━━\n\n"
         f"<b>Gawahon ki maujoodgi mein ye elaan kiya jata hai:</b>\n\n"
         f"🤵 <b>Dulha:</b> <a href='tg://user?id={u1_id}'>Pati Dev</a>\n"
