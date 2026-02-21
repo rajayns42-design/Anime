@@ -15,18 +15,18 @@ from telegram.request import HTTPXRequest
 from baka.utils import track_group, log_to_channel, BOT_NAME
 from baka.config import TOKEN, PORT
 
-# --- ALL PLUGINS SYNCED ---
+# --- ALL PLUGINS SYNCED (Folder se match kiya gaya) ---
 from baka.plugins import (
     start, economy, game, admin, broadcast, fun, events,
     welcome, ping, chatbot, riddle, social, ai_media,
     waifu, collection, shop, daily,
-    mafia, wordseek, wishes  # <--- Wishes Plugin Added
+    mafia, wordseek, wishes, couple, love
 )
 
 # ---------------- FLASK (Stay Alive) ----------------
 app = Flask(__name__)
 @app.route('/')
-def health(): return "Zexx Bot is Alive!"
+def health(): return f"{BOT_NAME} is Alive!"
 def run_flask(): app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
 
 # ---------------- COMMAND MENU ----------------
@@ -37,11 +37,9 @@ async def post_init(application):
         ("daily", "Claim Reward"),
         ("word", "WordSeek Game"),
         ("mafia", "Mafia Menu"),
-        ("create_team", "Create Team"),
-        ("team_war", "Mafia War"),
+        ("love", "Love Matching %"),
+        ("couple", "Match Making & Marriage"),
         ("riddle", "Riddle"),
-        ("couple", "Match Making"),
-        ("wpropose", "Waifu Marriage"),
         ("shop", "Item Shop")
     ])
 
@@ -80,10 +78,14 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("rob", game.rob))
     app_bot.add_handler(CommandHandler("protect", game.protect))
 
-    # ========= 4. WAIFU & SOCIAL =========
+    # ========= 4. WAIFU & SOCIAL (Relationship) =========
     app_bot.add_handler(CommandHandler("wpropose", waifu.wpropose))
     app_bot.add_handler(CommandHandler("wmarry", waifu.wmarry))
-    app_bot.add_handler(CommandHandler("couple", social.couple_game))
+    
+    # Matching Commands (Photo logic)
+    app_bot.add_handler(CommandHandler("couple", couple.couple_roll))
+    app_bot.add_handler(CommandHandler("love", couple.couple_roll)) 
+    
     app_bot.add_handler(CommandHandler("propose", social.propose))
     app_bot.add_handler(CommandHandler("divorce", social.divorce))
     for action in waifu.SFW_ACTIONS:
@@ -104,36 +106,31 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("addchat", chatbot.add_chat))
     app_bot.add_handler(CommandHandler("bulkadd", chatbot.bulk_add))
     
-    # ========= 6. SYSTEM CALLBACKS =========
+    # ========= 6. SYSTEM CALLBACKS (Buttons) =========
     app_bot.add_handler(CallbackQueryHandler(start.help_callback, pattern="^start_|^help_|^return_"))
     app_bot.add_handler(CallbackQueryHandler(shop.shop_callback, pattern="^shop_"))
     app_bot.add_handler(CallbackQueryHandler(social.proposal_callback, pattern="^marry_"))
+    app_bot.add_handler(CallbackQueryHandler(couple.marriage_callback, pattern="^marry_"))
 
-    # ========= 7. MESSAGE LISTENERS (Strict Priority) =========
-    # Group 0: WordSeek
+    # ========= 7. MESSAGE LISTENERS (Priority Based) =========
+    # Group 0: Games
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, wordseek.guess), group=0)
-    
-    # Group 1: Group Stats
+    # Group 1: Tracker
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=1)
-    
-    # Group 2: Waifu Drops
+    # Group 2-3: Waifu Drops
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.check_drops), group=2)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.collect_waifu), group=3)
-    
-    # Group 4: Riddle Answers
+    # Group 4: Riddle
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_riddle_answer), group=4)
-
-    # Group 5: Wishes (Morning/Night/Love/Festivals) <--- NEWLY ADDED
+    # Group 5: Wishes (Morning/Night)
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wishes.wishes_handler), group=5)
-
-    # Group 6: General Chatbot (Sabse Last)
+    # Group 6: Chatbot AI (Sabse Last)
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=6)
-
 
     # ========= 8. LOGS & EVENTS =========
     app_bot.add_handler(ChatMemberHandler(events.chat_member_update))
     app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
 
     # Final Launch
-    print(f"✅ {BOT_NAME} ZEXX FINAL EDITION IS ONLINE!")
+    print(f"✅ {BOT_NAME} FINAL VERSION DEPLOYED SUCCESSFULLY!")
     app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
