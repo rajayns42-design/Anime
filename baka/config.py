@@ -21,6 +21,7 @@
 
 import os
 import time
+import requests # Added for API calls
 
 # Track Uptime
 START_TIME = time.time()
@@ -30,6 +31,35 @@ TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 PORT = int(os.environ.get("PORT", 5000))
+
+# --- 🧠 MISTRAL AI FUNCTION (ADDED) ---
+def get_mistral_response(user_text):
+    """Mistral API logic for Angel Personality"""
+    if not MISTRAL_API_KEY:
+        return None
+    url = "https://api.mistral.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {MISTRAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    system_prompt = (
+        "You are a friendly Indian girl named Angel. "
+        "Talk in short, natural Hinglish. Use emojis. "
+        "Keep it sweet and casual like a friend."
+    )
+    data = {
+        "model": "mistral-tiny",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_text}
+        ],
+        "max_tokens": 20
+    }
+    try:
+        response = requests.post(url, json=data, headers=headers, timeout=7)
+        return response.json()['choices'][0]['message']['content']
+    except:
+        return None
 
 # Updater Config
 UPSTREAM_REPO = os.getenv("UPSTREAM_REPO", "")
@@ -89,7 +119,7 @@ SHOP_ITEMS = [
     {"id": "rpg", "name": "🚀 RPG", "price": 300000, "type": "weapon", "buff": 0.55},
     {"id": "tank", "name": "🚜 Tank", "price": 500000, "type": "weapon", "buff": 0.58},
     {"id": "laser", "name": "⚡ Laser", "price": 800000, "type": "weapon", "buff": 0.59},
-    {"id": "deathnote", "name": "📓 Death Note", "price": 5000000, "type": "weapon", "buff": 0.60}, # Max Dmg
+    {"id": "deathnote", "name": "📓 Death Note", "price": 5000000, "type": "weapon", "buff": 0.60},
 
     # ARMOR (Block Chance - Stops Robberies)
     {"id": "paper", "name": "📰 Newspaper", "price": 500, "type": "armor", "buff": 0.01},
@@ -105,7 +135,7 @@ SHOP_ITEMS = [
     {"id": "nano", "name": "🧬 Nano Suit", "price": 700000, "type": "armor", "buff": 0.40},
     {"id": "vibranium", "name": "🛡️ Vibranium", "price": 1500000, "type": "armor", "buff": 0.50},
     {"id": "force", "name": "🔮 Forcefield", "price": 3000000, "type": "armor", "buff": 0.55},
-    {"id": "plot", "name": "🎬 Plot Armor", "price": 10000000, "type": "armor", "buff": 0.60}, # Max Block
+    {"id": "plot", "name": "🎬 Plot Armor", "price": 10000000, "type": "armor", "buff": 0.60},
 
     # FLEX (Safe Assets - Burn on Death)
     {"id": "cookie", "name": "🍪 Cookie", "price": 100, "type": "flex", "buff": 0},
