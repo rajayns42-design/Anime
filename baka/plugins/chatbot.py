@@ -1,4 +1,4 @@
-# Final Fusion: Ultra-Smart Life-Time Memory Chatbot
+# Final Fusion: Ultra-Smart Life-Time Memory Chatbot (Fixed)
 import requests
 import re
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
@@ -17,16 +17,16 @@ async def get_mistral_response(user_id, user_text):
     url = "https://api.mistral.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
     
-    # Life-time memory se purane saare shabdon ki list banana
+    # Life-time memory se purane shabdon ki list
     past_vocab = ", ".join(list(LIFE_WORDS.get(user_id, set())))
 
     system_prompt = (
         f"You are {BOT_NAME}, a smart Indian girl. "
-        "STRICT PROTOCOL:\n"
-        "1. Max 4 words. Use Hinglish.\n"
-        "2. Strictly NO symbols like * or quotes. No emojis.\n"
-        f"3. NEVER use these words again in your life: [{past_vocab}].\n"
-        "4. Every reply must use BRAND NEW words. Be creative."
+        "Rules:\n"
+        "1. Max 4 words. Hinglish only.\n"
+        "2. STRICTLY NO symbols like * or quotes. No emojis.\n"
+        f"3. NEVER use these words ever again: [{past_vocab}].\n"
+        "4. Use BRAND NEW words every time."
     )
     
     data = {
@@ -37,64 +37,65 @@ async def get_mistral_response(user_id, user_text):
         ],
         "max_tokens": 10,
         "temperature": 1.0,
-        "repetition_penalty": 2.0 # Maximum strictness for new content
+        "repetition_penalty": 2.0 
     }
     
     try:
         response = requests.post(url, json=data, headers=headers, timeout=8)
         raw_text = response.json()['choices'][0]['message']['content'].strip()
         
-        # Symbol cleaning (No * or quotes)
+        # Symbol cleaning (Strictly no asterisks)
         clean_text = re.sub(r'[*"\'#_`-]', '', raw_text)
         
-        # Update Life-Time Memory
         if user_id not in LIFE_WORDS:
             LIFE_WORDS[user_id] = set()
         
         for word in clean_text.lower().split():
-            if len(word) > 2: # Chote words ignore, bade words block
+            if len(word) > 2:
                 LIFE_WORDS[user_id].add(word)
         
         return clean_text
     except:
         return None
 
-# --- 🛠️ 1. Settings: Toggle On/Off ---
+# --- 🛠️ 1. Ask AI (Wapas add kiya taaki crash na ho) ---
+async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        return await update.message.reply_text("Kuch toh pucho!")
+    
+    query = " ".join(context.args)
+    reply = await get_mistral_response(update.effective_user.id, query)
+    await update.message.reply_text(reply or "Net slow hai!")
+
+# --- 🛠️ 2. Settings: Toggle On/Off ---
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     is_on = doc.get("enabled", True) if doc else True
     
-    status = "✅ Active" if is_on else "❌ Inactive"
+    status = "✅ On" if is_on else "❌ Off"
     button = "Turn Off ❌" if is_on else "Turn On ✅"
     
     await update.message.reply_text(
-        f"<b>🤖 {BOT_NAME} AI Settings</b>\nStatus: <code>{status}</code>",
+        f"<b>🤖 {BOT_NAME} Settings</b>\nStatus: <code>{status}</code>",
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(button, callback_data="cb_toggle")]]),
         parse_mode=ParseMode.HTML
     )
 
-# --- 🛠️ 2. Callback: Button Logic ---
+# --- 🛠️ 3. Callback Logic ---
 async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     chat_id = update.effective_chat.id
-    
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     new_status = not (doc.get("enabled", True) if doc else True)
     
     chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": new_status}}, upsert=True)
     
-    msg = "Enabled ✅" if new_status else "Disabled ❌"
-    btn = "Turn Off ❌" if new_status else "Turn On ✅"
-    
+    msg = "On ✅" if new_status else "Off ❌"
     await query.answer(f"Chatbot {msg}")
-    await query.edit_message_text(
-        f"<b>🤖 Chatbot is now {msg}!</b>",
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(btn, callback_data="cb_toggle")]]),
-        parse_mode=ParseMode.HTML
-    )
+    await query.edit_message_text(f"<b>🤖 Chatbot is {msg}!</b>", parse_mode=ParseMode.HTML)
 
-# --- 💬 3. Listener: Auto Response ---
+# --- 💬 4. Auto Response Listener ---
 async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.effective_message
     if not msg or not msg.text or msg.text.startswith("/") or msg.from_user.is_bot:
@@ -109,6 +110,6 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if reply:
         await msg.reply_text(reply)
 
-# Admin Placeholders
+# Admin/System Placeholders
 async def add_chat(u, c): pass
 async def bulk_add(u, c): pass
