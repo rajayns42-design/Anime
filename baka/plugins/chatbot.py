@@ -1,40 +1,38 @@
 # Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Edited for Malik: ZEXX (Full Smart Memory Edition)
+# Edited for Malik: ZEXX (Full Smart Fixed Edition)
 
 import random
 import requests
 from telegram import Update
-from telegram.ext import ContextTypes, CommandHandler, MessageHandler, filters
-from telegram.constants import ParseMode, ChatType
+from telegram.ext import ContextTypes
+from telegram.constants import ParseMode
 from baka.config import MISTRAL_API_KEY, BOT_NAME
-from baka.database import chatbot_collection # Database connection for toggle
+from baka.database import chatbot_collection
 
 # --- Smart Memory Storage ---
-# Isme pichle replies save honge taaki bot same cheez baar-baar na bole
 USER_MEMORY = {}
 
 # =====================================
-# 🧠 MISTRAL AI ENGINE (NO REPEAT LOGIC)
+# 🧠 MISTRAL AI ENGINE (NO REPEAT)
 # =====================================
 
 async def get_mistral_response(user_id, user_text):
+    """Mistral API logic for Angel Personality"""
     if not MISTRAL_API_KEY:
         return None
         
     url = "https://api.mistral.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
     
-    # Ladki jaisi personality + Strictly No Repetition
+    # Character instruction for the AI
     system_prompt = (
         f"You are a friendly Indian girl named {BOT_NAME}. Talk in short, natural Hinglish. "
-        "Use only 1 emoji. Strictly NO FORMAL words. "
-        "Ek baar jo word ya sentence bol diya, use dobara mat bolna. "
-        "Keep it sweet and casual, like a real girl friend. Max 15-20 words."
+        "Use 1 emoji. Be sweet and casual. Ek bar jo bol diya dobara mat bolna."
     )
 
-    # Memory check: Pichla reply AI ko bhej rahe hain taaki wo repeat na kare
+    # Repetition control logic
     previous_reply = USER_MEMORY.get(user_id, "")
-    full_prompt = f"User said: {user_text}\n(Note: Don't repeat your last reply: '{previous_reply}')"
+    full_prompt = f"User: {user_text}\n(Note: Don't repeat your last reply: '{previous_reply}')"
 
     data = {
         "model": "mistral-tiny",
@@ -43,7 +41,7 @@ async def get_mistral_response(user_id, user_text):
             {"role": "user", "content": full_prompt}
         ],
         "max_tokens": 40,
-        "temperature": 0.9 # High temperature = variety in replies
+        "temperature": 0.8
     }
 
     try:
@@ -52,30 +50,33 @@ async def get_mistral_response(user_id, user_text):
         # Update memory for next time
         USER_MEMORY[user_id] = ai_reply
         return ai_reply
-    except:
+    except Exception as e:
+        print(f"AI ERROR: {e}")
         return None
 
 # =====================================
-# ⚙️ CHATBOT TOGGLE (FIX FOR CRASH)
+# 🛠️ FIXED: chatbot_toggle (Fixes Image 1 Error)
 # =====================================
 
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Isse /chatbot command chalne lagegi aur bot crash nahi hoga"""
+    """Handles /chatbot command to enable/disable AI"""
     chat_id = update.effective_chat.id
     user = update.effective_user
 
-    # Only admins or owner can toggle
-    if chat_id > 0: # Private Chat
-        pass
-    else: # Groups
-        member = await context.bot.get_chat_member(chat_id, user.id)
-        if member.status not in ["creator", "administrator"]:
-            return await update.message.reply_text("Babu, sirf admins hi chatbot control kar sakte hain! 🌸")
+    # Admin check for groups
+    if update.effective_chat.type != "private":
+        try:
+            member = await context.bot.get_chat_member(chat_id, user.id)
+            if member.status not in ["creator", "administrator"]:
+                return await update.message.reply_text("Babu, sirf admins hi chatbot control kar sakte hain! 🌸")
+        except Exception:
+            return
 
-    # DB Logic
+    # Database logic for status
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     is_enabled = doc.get("enabled", True) if doc else True
     
+    # Toggle status
     new_status = not is_enabled
     chatbot_collection.update_one(
         {"chat_id": f"settings_{chat_id}"},
@@ -87,36 +88,44 @@ async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"Chatbot ab {status_text} hai! ✨")
 
 # =====================================
-# 💬 MESSAGE HANDLER
+# 🛠️ FIXED: ask_ai (Fixes Image 2 Error)
+# =====================================
+
+async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles /ask command specifically"""
+    if not context.args:
+        return await update.message.reply_text("Babu, kuch pucho toh sahi! Example: `/ask kaise ho?` 🌸")
+    
+    query = " ".join(context.args)
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+    
+    reply = await get_mistral_response(update.effective_user.id, query)
+    if reply:
+        await update.message.reply_text(reply)
+    else:
+        await update.message.reply_text("Uff.. dimag nahi chal raha abhi! 😅")
+
+# =====================================
+# 💬 AUTOMATIC CHAT HANDLER
 # =====================================
 
 async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles general text messages for AI interaction"""
     msg = update.effective_message
-    if not msg or not msg.text or msg.text.startswith("/"): return
+    if not msg or not msg.text or msg.text.startswith("/"): 
+        return
     
     chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
     
-    # Check if chatbot is disabled in this chat
+    # Check if chatbot is disabled in database
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     if doc and not doc.get("enabled", True):
         return
 
-    # Typing action for realistic feel
+    # Typing effect for realism
     await context.bot.send_chat_action(chat_id=chat_id, action="typing")
     
-    # Get Response
-    reply = await get_mistral_response(user_id, msg.text.strip())
+    reply = await get_mistral_response(update.effective_user.id, msg.text.strip())
     
     if reply:
         await msg.reply_text(reply)
-    else:
-        # Fallback if API fails
-        fallbacks = ["Hmm.. kya bola? 🌸", "Acha? 😂", "Sunna.. firse bolna", "Theek hai baba.. 🤔"]
-        await msg.reply_text(random.choice(fallbacks))
-
-# =====================================
-# NOTE FOR RYAN.PY:
-# app_bot.add_handler(CommandHandler("chatbot", chatbot_toggle))
-# app_bot.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), ai_message_handler))
-# =====================================
