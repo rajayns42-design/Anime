@@ -15,12 +15,12 @@ from telegram.request import HTTPXRequest
 from baka.utils import track_group, log_to_channel, BOT_NAME
 from baka.config import TOKEN, PORT
 
-# --- ALL PLUGINS SYNCED (AK BHI NAHI CHHUTA) ---
+# --- ALL PLUGINS SYNCED ---
 from baka.plugins import (
     start, economy, game, admin, broadcast, fun, events,
     welcome, ping, chatbot, riddle, social, ai_media,
     waifu, collection, shop, daily,
-    mafia, wordseek
+    mafia, wordseek, wishes  # <--- Wishes Plugin Added
 )
 
 # ---------------- FLASK (Stay Alive) ----------------
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("update", admin.update_bot))
     app_bot.add_handler(CommandHandler("broadcast", broadcast.broadcast))
 
-    # ========= 2. ECONOMY & REWARDS (Zexx Style) =========
+    # ========= 2. ECONOMY & REWARDS =========
     app_bot.add_handler(CommandHandler("bal", economy.balance))
     app_bot.add_handler(CommandHandler("ranking", economy.ranking))
     app_bot.add_handler(CommandHandler("daily", daily.daily))
@@ -80,13 +80,12 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("rob", game.rob))
     app_bot.add_handler(CommandHandler("protect", game.protect))
 
-    # ========= 4. WAIFU & SOCIAL (Relationship Logic) =========
+    # ========= 4. WAIFU & SOCIAL =========
     app_bot.add_handler(CommandHandler("wpropose", waifu.wpropose))
     app_bot.add_handler(CommandHandler("wmarry", waifu.wmarry))
     app_bot.add_handler(CommandHandler("couple", social.couple_game))
     app_bot.add_handler(CommandHandler("propose", social.propose))
     app_bot.add_handler(CommandHandler("divorce", social.divorce))
-    # SFW Actions (kiss, slap, hug, etc.)
     for action in waifu.SFW_ACTIONS:
         app_bot.add_handler(CommandHandler(action, waifu.waifu_action))
 
@@ -94,25 +93,14 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("word", wordseek.start_game))
     app_bot.add_handler(CommandHandler("wlb", wordseek.leaderboard))
     app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
-    
-      
-    # 🎲 THE DICE HANDLER (Fixed for Crash)
     app_bot.add_handler(CommandHandler("dice", fun.dice)) 
-    
-   
     app_bot.add_handler(CommandHandler("speak", ai_media.speak_command))
     app_bot.add_handler(CommandHandler("draw", ai_media.draw_command))
 
     # ========= 🤖 CHATBOT & AI SECTION =========
-    
-    # Toggle handle karne ke liye (on/off)
     app_bot.add_handler(CommandHandler("chatbot", chatbot.chatbot_toggle)) 
-
-    # Missing functions fix (AttributeError rokne ke liye)
     app_bot.add_handler(CommandHandler("ask", chatbot.ask_ai))
     app_bot.add_handler(CallbackQueryHandler(chatbot.chatbot_callback, pattern="^cb_"))
-
-    # Chatbot Owner Commands
     app_bot.add_handler(CommandHandler("addchat", chatbot.add_chat))
     app_bot.add_handler(CommandHandler("bulkadd", chatbot.bulk_add))
     
@@ -122,19 +110,24 @@ if __name__ == '__main__':
     app_bot.add_handler(CallbackQueryHandler(social.proposal_callback, pattern="^marry_"))
 
     # ========= 7. MESSAGE LISTENERS (Strict Priority) =========
-    # P0: WordSeek (Fast Guessing)
+    # Group 0: WordSeek
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, wordseek.guess), group=0)
-    # P1: Group Stats & Auto-Add
+    
+    # Group 1: Group Stats
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=1)
-    # P2: Waifu Drops (Har 100 msg ke baad)
+    
+    # Group 2: Waifu Drops
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.check_drops), group=2)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.collect_waifu), group=3)
-            # ... upar ka code (Line 134 tak) ...
+    
+    # Group 4: Riddle Answers
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_riddle_answer), group=4)
 
-    # ========= 📩 MESSAGE LISTENERS (Fixed) =========
-    # Ye hamesha sabse niche hona chahiye listeners mein
-    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=5)
+    # Group 5: Wishes (Morning/Night/Love/Festivals) <--- NEWLY ADDED
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wishes.wishes_handler), group=5)
+
+    # Group 6: General Chatbot (Sabse Last)
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=6)
 
 
     # ========= 8. LOGS & EVENTS =========
