@@ -38,18 +38,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except: pass
 
     caption = (
-        f"❖ Hʏ {get_mention(user)}\n\n"
+        f"<blockquote>"
+        f"❖ Hʏ {get_mention(user)}\n"
         f"I Aᴍ <b>{BOT_NAME}</b>\n"
         f"Tʜᴇ Aᴇꜱᴛʜᴇᴛɪᴄ AI Rᴩɢ Gᴀᴍᴇ'ꜱ Bᴏᴛ\n"
         f"━━━━━━━━━━━━━━━\n"
         f"🎮 Fᴇᴀᴛᴜʀᴇꜱ\n"
         f"⚔️ Rᴩɢ : Kɪʟʟ•Pʀᴏᴛᴇᴄᴛ•Rᴇᴠɪᴠᴇ\n"
-        f"💗 Sᴏᴄɪᴀʟ : Mᴀʀʀʏ•Cᴏᴜᴩʟᴇ• Wᴀɪꜰᴜ\n"
-        f"💰 Eᴄᴏɴᴏᴍʏ : Cᴀʟɪᴍ•Gɪᴠᴇ Sʜᴏᴩ•DᴀɪʟDaily\n"
-        f"🤖 AI : Sᴍᴀʀᴛ Cʜᴀᴛʙᴏᴛ•Aꜱᴋ Aɴʏᴛʜɪɴᴋ\n"
+        f"💗 Sᴏᴄɪᴀʟ : Mᴀʀʀʏ•Cᴏᴜᴩʟᴇ•Wᴀɪꜰᴜ\n"
+        f"💰 Eᴄᴏɴᴏᴍʏ : Cᴀʟɪᴍ•Gɪᴠᴇ•Sʜᴏᴩ•Dᴀɪʟʏ\n"
+        f"🤖 AI : Sᴍᴀʀᴛ Cʜᴀᴛʙᴏᴛ•Aꜱᴋ Aɴʏᴛʜɪɴɢ\n"
         f"━━━━━━━━━━━━━━━\n"
-        f"💭 Pʀᴇꜱꜱ Tᴏ Hᴇʟᴩ Bᴜᴛᴛᴏɴ\n"
-        f"Sᴇᴇ Aʟʟ Fᴇᴀᴛᴜʀᴇ & Uꜱᴇ Wɪᴛʜ ./\n"
+        f"💭 Pʀᴇꜱꜱ Hᴇʟᴩ Bᴜᴛᴛᴏɴ\n"
+        f"Sᴇᴇ Aʟʟ Fᴇᴀᴛᴜʀᴇꜱ & Uꜱᴇ Wɪᴛʜ ./\n"
+        f"</blockquote>"
     )
 
     if update.callback_query:
