@@ -18,14 +18,14 @@ couple_collection = db["couple_history"]
 mafia_collection = db["mafia"]
 wordseek_collection = db["wordseek"]
 riddles_collection = db["riddles"]
-ws_wins_collection = db["wordseek_wins"] # Wordseek ranking ke liye [cite: 2026-02-21]
+ws_wins_collection = db["wordseek_wins"]
 
 # ===============================================
 # 🏆 ALL LEADERBOARDS (Wordseek Added)
 # ===============================================
 
 def update_ws_win(user_id, name):
-    """User ki wordseek wins database mein save karein [cite: 2026-02-21]"""
+    """User ki wordseek wins database mein save karein"""
     ws_wins_collection.update_one(
         {"user_id": user_id},
         {"$inc": {"wins": 1}, "$set": {"name": name}},
@@ -33,20 +33,28 @@ def update_ws_win(user_id, name):
     )
 
 def get_ws_leaderboard():
-    """Top 10 Wordseek winners ki ranking [cite: 2026-02-21]"""
+    """Top 10 Wordseek winners ki ranking"""
     return ws_wins_collection.find().sort("wins", -1).limit(10)
 
 def update_mafia_stats(team_name, points):
-    mafia_collection.update_one({"team_name": team_name}, {"$inc": {"points": points}}, upsert=True) [cite: 2026-02-21]
+    mafia_collection.update_one(
+        {"team_name": team_name}, 
+        {"$inc": {"points": points}}, 
+        upsert=True
+    )
 
 def get_mafia_leaderboard():
-    return mafia_collection.find().sort("points", -1).limit(10) [cite: 2026-02-21]
+    return mafia_collection.find().sort("points", -1).limit(10)
 
 def update_battle_win(user_id):
-    users_collection.update_one({"user_id": user_id}, {"$inc": {"battle_wins": 1}}, upsert=True) [cite: 2026-02-21]
+    users_collection.update_one(
+        {"user_id": user_id}, 
+        {"$inc": {"battle_wins": 1}}, 
+        upsert=True
+    )
 
 def get_battle_leaderboard():
-    return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10) [cite: 2026-02-21]
+    return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10)
 
 # ===============================================
 # 🧠 LIFE-TIME MEMORY & CORE FUNCTIONS
@@ -54,24 +62,47 @@ def get_battle_leaderboard():
 
 def get_banned_words(user_id):
     data = vocab_collection.find_one({"user_id": user_id})
-    return data.get("banned_words", []) if data else [] [cite: 2026-02-22]
+    return data.get("banned_words", []) if data else []
 
 def save_used_word(user_id, word):
-    vocab_collection.update_one({"user_id": user_id}, {"$addToSet": {"banned_words": word.lower().strip()}}, upsert=True) [cite: 2026-02-22]
+    vocab_collection.update_one(
+        {"user_id": user_id}, 
+        {"$addToSet": {"banned_words": word.lower().strip()}}, 
+        upsert=True
+    )
 
 def ws_start_game(chat_id, word):
-    wordseek_collection.update_one({"chat_id": chat_id}, {"$set": {"word": word.lower(), "status": "active"}}, upsert=True) [cite: 2026-02-22]
+    wordseek_collection.update_one(
+        {"chat_id": chat_id}, 
+        {"$set": {"word": word.lower(), "status": "active"}}, 
+        upsert=True
+    )
 
 def toggle_chatbot_status(chat_id, status: bool):
-    chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": status}}, upsert=True) [cite: 2026-02-22]
+    chatbot_collection.update_one(
+        {"chat_id": f"settings_{chat_id}"}, 
+        {"$set": {"enabled": status}}, 
+        upsert=True
+    )
 
 def is_chatbot_enabled(chat_id):
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
-    return doc.get("enabled", True) if doc else True [cite: 2026-02-22]
+    return doc.get("enabled", True) if doc else True
 
 def save_daily_couple(chat_id, user1_id, user2_id):
     today = datetime.now().strftime("%Y-%m-%d")
-    couple_collection.update_one({"chat_id": chat_id}, {"$set": {"u1": user1_id, "u2": user2_id, "date": today}}, upsert=True) [cite: 2026-02-21]
+    couple_collection.update_one(
+        {"chat_id": chat_id}, 
+        {"$set": {"u1": user1_id, "u2": user2_id, "date": today}}, 
+        upsert=True
+    )
 
 def ensure_user_exists(user):
-    users_collection.update_one({"user_id": user.id}, {"$set": {"username": user.username, "name": user.first_name}, "$setOnInsert": {"battle_wins": 0, "balance": 5000}}, upsert=True) [cite: 2026-02-21]
+    users_collection.update_one(
+        {"user_id": user.id}, 
+        {
+            "$set": {"username": user.username, "name": user.first_name}, 
+            "$setOnInsert": {"battle_wins": 0, "balance": 5000}
+        }, 
+        upsert=True
+    )
