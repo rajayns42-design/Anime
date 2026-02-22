@@ -14,7 +14,7 @@ def get_start_keyboard(bot_username):
         [InlineKeyboardButton("⌯ ᴀᴅᴅ ᴍᴇ ʙᴀʙʏ ⌯", url=f"https://t.me/{bot_username}?startgroup=true")],
         [
             InlineKeyboardButton("🥀 Bσσк", callback_data="help_main"), 
-            InlineKeyboardButton("⦗ ⌯ 𝐇𝐀𝐑𝐈 ⌯ ⦘", url=OWNER_LINK)
+            InlineKeyboardButton("⌯ 𝐇𝐀𝐑𝐈 ⌯", url=OWNER_LINK)
         ],
         [
             InlineKeyboardButton("📩 Uᴩᴅᴀᴛᴇ", url="https://t.me/Love_bot_143"), 
