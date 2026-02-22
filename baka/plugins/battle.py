@@ -18,7 +18,7 @@ async def battle_system(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not update.message.reply_to_message:
         return await update.message.reply_text(
-            "<b>❌ 𝐁𝐚𝐤𝐚! 𝐑𝐞𝐩𝐥𝐲 𝐭𝐨 𝐚 𝐮𝐬𝐞𝐫 𝐭𝐨 𝐜𝐡𝐚𝐥𝐥𝐞𝐧𝐠𝐞 𝐭𝐡𝐞𝐦.</b>",
+            "<b>❌ 𝐀𝐧𝐠𝐞𝐥! 𝐑𝐞𝐩𝐥𝐲 𝐭𝐨 𝐚 𝐮𝐬𝐞𝐫 𝐭𝐨 𝐜𝐡𝐚𝐥𝐥𝐞𝐧𝐠𝐞 𝐭𝐡𝐞𝐦.</b>",
             parse_mode=ParseMode.HTML
         )
 
