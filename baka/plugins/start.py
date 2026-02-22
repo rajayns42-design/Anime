@@ -92,6 +92,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💰 𝐄𝐜𝐨𝐧𝐨𝐦𝐲 : Sʜᴏᴘ • Dᴀɪʟ𝐲 • Gɪ𝐯𝐞\n"
         f"🤖 𝐀𝐈 : Cʜᴀᴛʙᴏᴛ • Dʀᴀᴡ • Sᴘᴇᴀᴋ\n"
         f"━━━━━━━━━━━━━━━\n"
+        f"💭 Pʀᴇꜱʜ Tᴏ Hᴇʟᴩ Bᴜᴛᴛᴏɴ\n"
+f"Aɴᴅ Sᴇᴇ Aʟʟ Fᴇᴀᴛᴜʀᴇ & Uꜱᴇ Wɪᴛʜ ./\n"
         f"</blockquote>"
     )
 
