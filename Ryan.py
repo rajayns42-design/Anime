@@ -1,5 +1,5 @@
 # Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Professional Multi-Module Dashboard for ZEXX (Final Deployment)
+# Final Master Main for ZEXX - Handlers Only Version
 
 import os
 os.environ["GIT_PYTHON_REFRESH"] = "quiet"
@@ -22,7 +22,7 @@ from baka.plugins import (
     start, economy, game, admin, broadcast, fun, events,
     welcome, ping, chatbot, riddle, social, ai_media,
     waifu, collection, shop, daily,
-    mafia, wordseek, wishes, couple, love
+    mafia, wordseek, wishes, couple, love, battle
 )
 
 # ---------------- FLASK (Stay Alive) ----------------
@@ -31,22 +31,10 @@ app = Flask(__name__)
 def health(): return f"{BOT_NAME} is Alive!"
 def run_flask(): app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
 
-# ---------------- COMMAND MENU & LOGS ----------------
+# ---------------- STARTUP LOGS ----------------
 async def post_init(application):
-    # Bot Commands Setup
-    await application.bot.set_my_commands([
-        ("start", "Main Menu"),
-        ("bal", "Wallet & Gold"),
-        ("daily", "Claim Reward"),
-        ("word", "WordSeek Game"),
-        ("mafia", "Mafia Menu"),
-        ("love", "Love Matching %"),
-        ("couple", "Match Making & Marriage"),
-        ("riddle", "Riddle"),
-        ("shop", "Item Shop")
-    ])
-    
-    # Send Deployment Log (FIXED)
+    # Commands block removed as requested.
+    # Only sending startup log to channel.
     await log_to_channel(application.bot, "start")
 
 # ---------------- THE MASTER MAIN ----------------
@@ -56,7 +44,7 @@ if __name__ == '__main__':
     request = HTTPXRequest(connection_pool_size=20)
     app_bot = ApplicationBuilder().token(TOKEN).request(request).post_init(post_init).build()
 
-    # ========= 1. SYSTEM & ADMIN (Core) =========
+    # ========= 1. CORE & ADMIN =========
     app_bot.add_handler(CommandHandler("start", start.start))
     app_bot.add_handler(CommandHandler("ping", ping.ping))
     app_bot.add_handler(CommandHandler("help", start.start))
@@ -71,52 +59,47 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("shop", shop.shop_menu))
     app_bot.add_handler(CommandHandler("buy", shop.buy))
 
-    # ========= 3. MAFIA & ACTION RPG =========
-    app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
-    app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
-    app_bot.add_handler(CommandHandler("mpromote", mafia.promote_member))
-    app_bot.add_handler(CommandHandler("leave_team", mafia.leave_team))
-    app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
-    app_bot.add_handler(CommandHandler("t_deposit", mafia.team_deposit))
-    app_bot.add_handler(CommandHandler("t_lb", mafia.team_leaderboard))
+    # ========= 3. RPG & BATTLE SYSTEM =========
+    app_bot.add_handler(CommandHandler("battle", battle.battle_system))
+    app_bot.add_handler(CommandHandler("battlelb", battle.battle_leaderboard))
     app_bot.add_handler(CommandHandler("arena", mafia.arena_fight))
     app_bot.add_handler(CommandHandler("kill", game.kill))
     app_bot.add_handler(CommandHandler("rob", game.rob))
     app_bot.add_handler(CommandHandler("protect", game.protect))
 
-    # ========= 4. WAIFU & SOCIAL (Relationship) =========
-    app_bot.add_handler(CommandHandler("wpropose", waifu.wpropose))
-    app_bot.add_handler(CommandHandler("wmarry", waifu.wmarry))
+    # ========= 4. MAFIA TEAM SYSTEM =========
+    app_bot.add_handler(CommandHandler("create_team", mafia.create_team))
+    app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
+    app_bot.add_handler(CommandHandler("mpromote", mafia.promote_member))
+    app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
+
+    # ========= 5. SOCIAL & WAIFU =========
+    app_bot.add_handler(CommandHandler("marry", social.propose))
     app_bot.add_handler(CommandHandler("couple", couple.couple_roll))
-    app_bot.add_handler(CommandHandler("love", couple.couple_roll)) 
+    app_bot.add_handler(CommandHandler("love", love.love_command)) 
     app_bot.add_handler(CommandHandler("propose", social.propose))
     app_bot.add_handler(CommandHandler("divorce", social.divorce))
     for action in waifu.SFW_ACTIONS:
         app_bot.add_handler(CommandHandler(action, waifu.waifu_action))
 
-    # ========= 5. FUN & GAMES =========
-    app_bot.add_handler(CommandHandler("word", wordseek.start_game))
-    app_bot.add_handler(CommandHandler("wlb", wordseek.leaderboard))
-    app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
-    app_bot.add_handler(CommandHandler("dice", fun.dice)) 
+    # ========= 6. AI & MEDIA =========
+    app_bot.add_handler(CommandHandler("chatbot", chatbot.chatbot_toggle)) 
+    app_bot.add_handler(CommandHandler("ask", chatbot.ask_ai))
     app_bot.add_handler(CommandHandler("speak", ai_media.speak_command))
     app_bot.add_handler(CommandHandler("draw", ai_media.draw_command))
 
-    # ========= 🤖 CHATBOT & AI SECTION =========
-    app_bot.add_handler(CommandHandler("chatbot", chatbot.chatbot_toggle)) 
-    app_bot.add_handler(CommandHandler("ask", chatbot.ask_ai))
-    app_bot.add_handler(CommandHandler("addchat", chatbot.add_chat))
-    app_bot.add_handler(CommandHandler("bulkadd", chatbot.bulk_add))
-    
-    # ========= 6. CALLBACK HANDLER (ALL BUTTONS) =========
-    # Pattern updated to include help buttons (cb_)
+    # ========= 7. GAMES & FUN =========
+    app_bot.add_handler(CommandHandler("word", wordseek.start_game))
+    app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
+    app_bot.add_handler(CommandHandler("dice", fun.dice)) 
+
+    # ========= 8. CALLBACK HANDLERS (ALL BUTTONS) =========
     app_bot.add_handler(CallbackQueryHandler(start.help_callback, pattern="^(start_|help_|return_|cb_)"))
-    app_bot.add_handler(CallbackQueryHandler(chatbot.chatbot_callback, pattern="^cb_"))
     app_bot.add_handler(CallbackQueryHandler(shop.shop_callback, pattern="^shop_"))
     app_bot.add_handler(CallbackQueryHandler(social.proposal_callback, pattern="^marry_"))
-    app_bot.add_handler(CallbackQueryHandler(couple.marriage_callback, pattern="^marry_"))
+    app_bot.add_handler(CallbackQueryHandler(battle.battle_system, pattern="^cb_battle_retry"))
 
-    # ========= 7. MESSAGE LISTENERS =========
+    # ========= 9. MESSAGE LISTENERS =========
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, wordseek.guess), group=0)
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=1)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.check_drops), group=2)
@@ -125,10 +108,10 @@ if __name__ == '__main__':
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wishes.wishes_handler), group=5)
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=6)
 
-    # ========= 8. LOGS & EVENTS =========
+    # ========= 10. SYSTEM EVENTS =========
     app_bot.add_handler(ChatMemberHandler(events.chat_member_update))
     app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
 
     # Final Launch
-    print(f"✅ {BOT_NAME} FINAL VERSION DEPLOYED SUCCESSFULLY!")
+    print(f"✅ {BOT_NAME} DEPLOYED WITHOUT AUTO-COMMANDS!")
     app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
