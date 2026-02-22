@@ -1,121 +1,72 @@
-import random
 import certifi
 from pymongo import MongoClient
-from datetime import datetime, timedelta
-from baka.config import MONGO_URI # Ensure your config has MONGO_URI
+from baka.config import MONGO_URI
 
-# ===============================================
-# DATABASE CONNECTION
-# ===============================================
-
-# SSL certificate verify karne ke liye certifi use kiya hai
+# --- 🛰️ CONNECTION ---
 RyanBaka = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = RyanBaka["bakabot_db"]
 
-# ===============================================
-# COLLECTIONS
-# ===============================================
-
+# --- 📁 COLLECTIONS ---
 users_collection = db["users"]
-groups_collection = db["groups"]
-sudoers_collection = db["sudoers"]
-chatbot_collection = db["chatbot"]
-riddles_collection = db["riddles"]
-mafia_collection = db["mafia"]
-wordseek_collection = db["wordseek"]
-wins_collection = db["wordseek_wins"] # Leaderboard ke liye naya collection
+couple_collection = db["couple_history"]
+battle_stats = db["battle_records"]
+mafia_collection = db["mafia"] # Mafia teams ke liye [cite: 2026-02-22]
 
 # ===============================================
-# CHATBOT FUNCTIONS (Private & Group Support)
+# 🏆 BATTLE LEADERBOARD SYSTEM
 # ===============================================
 
-def add_chat_to_db(word, response):
-    """Database mein naya word aur reply add karne ke liye"""
-    chatbot_collection.update_one(
-        {"word": word.lower().strip()},
-        {"$addToSet": {"responses": response.strip()}},
+def update_battle_win(user_id):
+    """User ki battle win count badhane ke liye"""
+    users_collection.update_one(
+        {"user_id": user_id},
+        {"$inc": {"battle_wins": 1}},
         upsert=True
     )
 
-def get_chat_response(word):
-    """Database se random response nikalne ke liye"""
-    data = chatbot_collection.find_one({"word": word.lower().strip()})
-    if data and "responses" in data:
-        res = data["responses"]
-        return random.choice(res) if isinstance(res, list) else res
-    return None
-
-def toggle_chatbot_status(chat_id, status: bool):
-    """Group mein chatbot on ya off karne ke liye"""
-    chatbot_collection.update_one(
-        {"chat_id": f"settings_{chat_id}"},
-        {"$set": {"enabled": status}},
-        upsert=True
-    )
-
-def is_chatbot_enabled(chat_id):
-    """Check karega ki chatbot enabled hai ya nahi"""
-    doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
-    if doc:
-        return doc.get("enabled", True)
-    return True
+def get_battle_leaderboard():
+    """Top 10 battle winners ki list"""
+    return users_collection.find().sort("battle_wins", -1).limit(10)
 
 # ===============================================
-# WORDSEEK FUNCTIONS
+# ❤️ COUPLE TRACKER
 # ===============================================
 
-def ws_start_game(chat_id, word):
-    """Naya Wordseek game start karne ke liye"""
-    wordseek_collection.update_one(
+def save_daily_couple(chat_id, user1_id, user2_id):
+    """Daily couple save karne ke liye"""
+    couple_collection.update_one(
         {"chat_id": chat_id},
+        {"$set": {"u1": user1_id, "u2": user2_id, "date": "2026-02-22"}},
+        upsert=True
+    )
+
+# ===============================================
+# 🔫 MAFIA LEADERBOARD (Naya Add Kiya) [cite: 2026-02-22]
+# ===============================================
+
+def update_mafia_stats(team_name, points):
+    """Mafia team ke points update karne ke liye"""
+    mafia_collection.update_one(
+        {"team_name": team_name},
+        {"$inc": {"points": points}},
+        upsert=True
+    ) [cite: 2026-02-22]
+
+def get_mafia_leaderboard():
+    """Top 10 Mafia Teams ki list"""
+    return mafia_collection.find().sort("points", -1).limit(10) [cite: 2026-02-22]
+
+# ===============================================
+# 🛠️ CORE USER DATA
+# ===============================================
+
+def ensure_user_exists(user):
+    """User register karne ke liye"""
+    users_collection.update_one(
+        {"user_id": user.id},
         {
-            "$set": {
-                "chat_id": chat_id,
-                "active": True,
-                "word": word.upper(),
-                "board": [],
-                "revealed_indices": [],
-                "start_time": datetime.now()
-            }
+            "$set": {"username": user.username, "name": user.first_name},
+            "$setOnInsert": {"battle_wins": 0, "balance": 5000}
         },
         upsert=True
     )
-
-def ws_get_game(chat_id):
-    """Active game ka data nikalne ke liye"""
-    return wordseek_collection.find_one({"chat_id": chat_id, "active": True})
-
-def ws_update_board(chat_id, board, revealed_indices=None):
-    """Board aur revealed indices ko update karne ke liye"""
-    update_data = {"board": board}
-    if revealed_indices is not None:
-        update_data["revealed_indices"] = revealed_indices
-        
-    wordseek_collection.update_one(
-        {"chat_id": chat_id, "active": True},
-        {"$set": update_data}
-    )
-
-def ws_end_game(chat_id):
-    """Game khatam karne ke liye"""
-    wordseek_collection.update_one({"chat_id": chat_id}, {"$set": {"active": False}})
-
-# ===============================================
-# LEADERBOARD FUNCTIONS (Naya Add Kiya Gaya)
-# ===============================================
-
-def ws_add_win(chat_id, user_id, name):
-    """Winner ki wins count update karne ke liye"""
-    wins_collection.update_one(
-        {"chat_id": chat_id},
-        {
-            "$inc": {f"players.{user_id}.wins": 1},
-            "$set": {f"players.{user_id}.name": name}
-        },
-        upsert=True
-    )
-
-def ws_get_leaderboard(chat_id):
-    """Leaderboard data fetch karne ke liye"""
-    data = wins_collection.find_one({"chat_id": chat_id})
-    return data.get("players", {}) if data else {}
