@@ -1,6 +1,5 @@
 # Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Location: Supaul, Bihar 
-# Professional Utility & Logger System for ZEXX
+# Updated Utils with Missing RPG & Economy Functions
 
 import html
 import re
@@ -8,7 +7,6 @@ import asyncio
 from datetime import datetime, timedelta
 from telegram import Bot
 from telegram.constants import ParseMode, ChatType
-from telegram.error import TelegramError
 from baka.database import users_collection, sudoers_collection, groups_collection
 from baka.config import OWNER_ID, SUDO_IDS_STR, LOGGER_ID, BOT_NAME, AUTO_REVIVE_HOURS, AUTO_REVIVE_BONUS
 
@@ -25,11 +23,10 @@ def reload_sudoers():
 
 reload_sudoers()
 
-# --- 🌟 ULTIMATE LOGGER (FIXED FOR STARTUP) ---
+# --- 🌟 ULTIMATE LOGGER ---
 async def log_to_channel(bot: Bot, event_type: str, details: dict = None):
     if not LOGGER_ID or LOGGER_ID == 0: return
     if details is None: details = {}
-    
     now = datetime.now().strftime("%I:%M %p | %d %b")
     
     headers = {
@@ -40,66 +37,52 @@ async def log_to_channel(bot: Bot, event_type: str, details: dict = None):
         "transfer": "💸 <b>𝐓𝐑𝐀𝐍𝐒𝐀𝐂𝐓𝐈𝐎𝐍</b>"
     }
     header = headers.get(event_type, "🔔 <b>𝐋𝐎𝐆</b>")
-
     text = f"{header}\n\n📅 <b>𝐓𝐢𝐦𝐞:</b> <code>{now}</code>\n"
-    
-    if event_type == "start":
-        text += f"🚀 <b>𝐒𝐭𝐚𝐭𝐮𝐬:</b> Online & All 21 Plugins Synced.\n"
-    
+    if event_type == "start": text += f"🚀 <b>𝐒𝐭𝐚𝐭𝐮𝐬:</b> Online & All 21 Plugins Synced.\n"
     if 'user' in details: text += f"👤 <b>𝐓𝐫𝐢𝐠𝐠𝐞𝐫:</b> {details['user']}\n"
     if 'chat' in details: text += f"📍 <b>𝐂𝐡𝐚𝐭:</b> {html.escape(str(details['chat']))}\n"
     if 'action' in details: text += f"🎬 <b>𝐀𝐜𝐭𝐢𝐨𝐧:</b> {details['action']}\n"
-    if 'link' in details and details['link'] != "No Link": 
-        text += f"🔗 <b>𝐋𝐢𝐧𝐤:</b> <a href='{details['link']}'>𝐂𝐥𝐢𝐜𝐤 𝐇𝐞𝐫𝐞</a>\n"
-    
     text += f"\n🤖 <i>{BOT_NAME} 𝐒𝐲𝐬𝐭𝐞𝐦𝐬</i>"
+    try: await bot.send_message(chat_id=LOGGER_ID, text=text, parse_mode=ParseMode.HTML)
+    except: pass
 
-    try: 
-        await bot.send_message(chat_id=LOGGER_ID, text=text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-    except Exception as e:
-        print(f"Logger Error: {e}")
+# --- 🛠️ ESSENTIAL HELPERS (CRITICAL FIX) ---
 
-# --- 🛠️ HELPERS ---
+def format_money(amount): 
+    """Fixes the ImportError in economy.py"""
+    return f"${amount:,}"
 
 def get_mention(user_data, custom_name=None):
     if hasattr(user_data, "id"): 
         name = custom_name or user_data.first_name
         return f"<a href='tg://user?id={user_data.id}'><b>{html.escape(name)}</b></a>"
-    elif isinstance(user_data, dict):
-        name = custom_name or user_data.get("name", "User")
-        uid = user_data.get("user_id")
-        return f"<a href='tg://user?id={uid}'><b>{html.escape(name)}</b></a>"
     return "𝐔𝐧𝐤𝐧𝐨𝐰𝐧"
 
 def ensure_user_exists(tg_user):
     user_doc = users_collection.find_one({"user_id": tg_user.id})
-    username = tg_user.username.lower() if tg_user.username else None
-    
     if not user_doc:
         new_user = {
-            "user_id": tg_user.id, "name": tg_user.first_name, "username": username,
-            "balance": 0, "inventory": [], "waifus": [], "status": "alive",
-            "registered_at": datetime.utcnow(), "seen_groups": []
+            "user_id": tg_user.id, "name": tg_user.first_name, 
+            "balance": 0, "status": "alive", "registered_at": datetime.utcnow()
         }
         users_collection.insert_one(new_user)
         return new_user
     return user_doc
 
+async def resolve_target(update, context, specific_arg=None):
+    if update.message.reply_to_message:
+        return ensure_user_exists(update.message.reply_to_message.from_user), None
+    query = specific_arg or (context.args[0] if context.args else None)
+    if query and query.isdigit():
+        doc = users_collection.find_one({"user_id": int(query)})
+        if doc: return doc, None
+    return None, "No target found"
+
 def track_group(chat, user):
     if chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
         if not groups_collection.find_one({"chat_id": chat.id}):
             groups_collection.insert_one({"chat_id": chat.id, "title": chat.title})
-        if user:
-            users_collection.update_one({"user_id": user.id}, {"$addToSet": {"seen_groups": chat.id}})
 
-# --- ✍️ SMART FONT STYLER ---
 def stylize_text(text):
-    font_map = {
-        'A': '𝐀', 'B': '𝐁', 'C': '𝐂', 'D': '𝐃', 'E': '𝐄', 'F': '𝐅', 'G': '𝐆', 'H': '𝐇', 'I': '𝐈', 'J': '𝐉', 'K': '𝐊', 'L': '𝐋', 'M': '𝐌', 'N': '𝐍', 'O': '𝐎', 'P': '𝐏', 'Q': '𝐐', 'R': '𝐑', 'S': '𝐒', 'T': '𝐓', 'U': '𝐔', 'V': '𝐕', 'W': '𝐖', 'X': '𝐗', 'Y': '𝐘', 'Z': '𝐙',
-        'a': 'ᴀ', 'b': 'ʙ', 'c': 'ᴄ', 'd': 'ᴅ', 'e': 'ᴇ', 'f': 'ꜰ', 'g': 'ɢ', 'h': 'ʜ', 'i': 'ɪ', 'j': 'ᴊ', 'k': 'ᴋ', 'l': 'ʟ', 'm': 'ᴍ', 'n': 'ɴ', 'o': 'ᴏ', 'p': 'ᴩ', 'q': 'q', 'r': 'ʀ', 's': 'ꜱ', 't': 'ᴛ', 'u': 'ᴜ', 'v': 'ᴠ', 'w': 'ᴡ', 'x': 'x', 'y': 'ʏ', 'z': 'ᴢ',
-        '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟗'
-    }
-    def apply_style(t): return "".join(font_map.get(c, c) for c in t)
-    pattern = r"(@\w+|https?://\S+|`[^`]+`|/[a-zA-Z0-9_]+)"
-    parts = re.split(pattern, text)
-    return "".join(part if re.match(pattern, part) else apply_style(part) for part in parts)
+    font_map = {'a': 'ᴀ', 'b': 'ʙ', 'c': 'ᴄ', 'd': 'ᴅ', 'e': 'ᴇ', 'f': 'ꜰ', 'g': 'ɢ', 'h': 'ʜ', 'i': 'ɪ', 'j': 'ᴊ', 'k': 'ᴋ', 'l': 'ʟ', 'm': 'ᴍ', 'n': 'ɴ', 'o': 'ᴏ', 'p': 'ᴩ', 'q': 'q', 'r': 'ʀ', 's': 'ꜱ', 't': 'ᴛ', 'u': 'ᴜ', 'v': 'ᴠ', 'w': 'ᴡ', 'x': 'x', 'y': 'ʏ', 'z': 'ᴢ'}
+    return "".join(font_map.get(c.lower(), c) for c in text)
