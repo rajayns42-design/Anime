@@ -7,7 +7,7 @@ from baka.config import MONGO_URI
 client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = client["bakabot_db"]
 
-# --- 📁 COLLECTIONS ---
+# --- 📁 ALL COLLECTIONS ---
 users_collection = db["users"]
 groups_collection = db["groups"]
 sudoers_collection = db["sudoers"]
@@ -34,8 +34,8 @@ def get_battle_leaderboard():
     return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10)
 
 def get_couple_leaderboard(chat_id):
-    """Group ke top couples ki list (New Add Kiya)"""
-    return couple_collection.find({"chat_id": chat_id}).sort("date", -1).limit(10) [cite: 2026-02-22]
+    """Group ke top couples ki list"""
+    return couple_collection.find({"chat_id": chat_id}).sort("date", -1).limit(10)
 
 def get_mafia_leaderboard():
     """Top Mafia Teams ki ranking"""
