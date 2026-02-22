@@ -1,4 +1,5 @@
 import certifi
+import random
 from pymongo import MongoClient
 from baka.config import MONGO_URI
 
@@ -10,7 +11,25 @@ db = RyanBaka["bakabot_db"]
 users_collection = db["users"]
 couple_collection = db["couple_history"]
 battle_stats = db["battle_records"]
-mafia_collection = db["mafia"] # Mafia teams ke liye [cite: 2026-02-22]
+mafia_collection = db["mafia"]
+chatbot_collection = db["chatbot"]
+vocab_collection = db["vocabulary"]
+
+# ===============================================
+# 🔫 MAFIA LEADERBOARD
+# ===============================================
+
+def update_mafia_stats(team_name, points):
+    """Mafia team ke points update karne ke liye"""
+    mafia_collection.update_one(
+        {"team_name": team_name},
+        {"$inc": {"points": points}},
+        upsert=True
+    )
+
+def get_mafia_leaderboard():
+    """Top 10 Mafia Teams ki list"""
+    return mafia_collection.find().sort("points", -1).limit(10)
 
 # ===============================================
 # 🏆 BATTLE LEADERBOARD SYSTEM
@@ -41,20 +60,21 @@ def save_daily_couple(chat_id, user1_id, user2_id):
     )
 
 # ===============================================
-# 🔫 MAFIA LEADERBOARD (Naya Add Kiya) [cite: 2026-02-22]
+# 🧠 CHATBOT MEMORY (Life-Time Blocking)
 # ===============================================
 
-def update_mafia_stats(team_name, points):
-    """Mafia team ke points update karne ke liye"""
-    mafia_collection.update_one(
-        {"team_name": team_name},
-        {"$inc": {"points": points}},
+def save_used_word(user_id, word):
+    """Jo word bot ne bola usse permanent block list mein daalne ke liye"""
+    vocab_collection.update_one(
+        {"user_id": user_id},
+        {"$addToSet": {"banned_words": word.lower()}},
         upsert=True
-    ) [cite: 2026-02-22]
+    )
 
-def get_mafia_leaderboard():
-    """Top 10 Mafia Teams ki list"""
-    return mafia_collection.find().sort("points", -1).limit(10) [cite: 2026-02-22]
+def get_banned_words(user_id):
+    """Sare purane bole gaye words nikalne ke liye"""
+    data = vocab_collection.find_one({"user_id": user_id})
+    return data["banned_words"] if data else []
 
 # ===============================================
 # 🛠️ CORE USER DATA
