@@ -10,14 +10,16 @@ from baka.database import (
     get_banned_words
 )
 
+# --- 🧠 CORE AI ENGINE ---
 async def get_mistral_response(user_id, user_text):
+    """Mistral AI se Hinglish response leta hai bina symbols ke"""
     if not MISTRAL_API_KEY:
         return None
     
     url = "https://api.mistral.ai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
     
-    # Database se purane words fetch karna
+    # Life-time vocabulary fetch karna
     banned = get_banned_words(user_id)
     past_vocab = ", ".join(banned[-50:])
 
@@ -41,10 +43,10 @@ async def get_mistral_response(user_id, user_text):
         response = requests.post(url, json=data, headers=headers, timeout=8)
         ans = response.json()['choices'][0]['message']['content'].strip()
         
-        # Symbol cleaning logic
+        # Symbols aur quotes hatane ke liye cleaning
         clean_text = re.sub(r'[*"\'#_`-]', '', ans)
         
-        # Word block list update
+        # Database mein words save karna taaki dobara na bole
         for word in clean_text.lower().split():
             if len(word) > 2:
                 save_used_word(user_id, word)
@@ -53,8 +55,9 @@ async def get_mistral_response(user_id, user_text):
     except:
         return None
 
-# --- Toggle Menu (With Help Button) ---
+# --- 🛠️ TOGGLE MENU & HELP ---
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """AI on/off karne ka menu"""
     chat_id = update.effective_chat.id
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     status = doc.get("enabled", True) if doc else True
@@ -62,6 +65,7 @@ async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     txt = "✅ On" if status else "❌ Off"
     btn_txt = "Turn Off ❌" if status else "Turn On ✅"
     
+    # Help button aur toggle switch
     keyboard = [
         [InlineKeyboardButton(btn_txt, callback_data="cb_toggle")],
         [InlineKeyboardButton("❓ Help", callback_data="cb_help")]
@@ -73,8 +77,8 @@ async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.HTML
     )
 
-# --- Help & Toggle Callback ---
 async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Button clicks handle karne ke liye"""
     query = update.callback_query
     chat_id = query.message.chat.id
     
@@ -88,13 +92,21 @@ async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "cb_help":
         await query.answer("Bas chat karo, AI khud reply karegi!", show_alert=True)
 
-# --- Ask AI & Message Handler ---
+# --- 💬 MESSAGE HANDLERS (With Tagging) ---
 async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Manual command handler"""
     if not context.args: return await update.message.reply_text("Kuch toh pucho!")
-    res = await get_mistral_response(update.effective_user.id, " ".join(context.args))
-    await update.message.reply_text(res or "Net slow hai!")
+    
+    user = update.effective_user
+    res = await get_mistral_response(user.id, " ".join(context.args))
+    
+    if res:
+        # User tag shuruat mein
+        tag = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
+        await update.message.reply_text(f"{tag} {res}", parse_mode=ParseMode.HTML)
 
 async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Automatic reply handler"""
     msg = update.effective_message
     if not msg or not msg.text or msg.text.startswith("/") or msg.from_user.is_bot:
         return
@@ -104,6 +116,10 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if doc and not doc.get("enabled", True):
         return
         
-    reply = await get_mistral_response(update.effective_user.id, msg.text)
+    user = update.effective_user
+    reply = await get_mistral_response(user.id, msg.text)
+    
     if reply:
-        await msg.reply_text(reply)
+        # Clickable mention shuru mein
+        tag = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
+        await msg.reply_text(f"{tag} {reply}", parse_mode=ParseMode.HTML)
