@@ -7,7 +7,7 @@ from baka.config import MONGO_URI
 client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = client["bakabot_db"]
 
-# --- 📁 ALL COLLECTIONS ---
+# --- 📁 ALL COLLECTIONS (Sync with all plugins) ---
 users_collection = db["users"]
 groups_collection = db["groups"]
 sudoers_collection = db["sudoers"]
@@ -16,13 +16,40 @@ vocab_collection = db["vocabulary"]
 couple_collection = db["couple_history"]
 mafia_collection = db["mafia"]
 wordseek_collection = db["wordseek"]
+riddles_collection = db["riddles"]  # Fixed ImportError for riddle.py
+
+# --- 🧠 LIFE-TIME MEMORY VARIABLE ---
+LIFE_WORDS = {} 
+
+def load_life_words():
+    """Startup par database se words load karne ke liye"""
+    global LIFE_WORDS
+    try:
+        cursor = vocab_collection.find()
+        for doc in cursor:
+            LIFE_WORDS[doc["user_id"]] = set(doc.get("banned_words", []))
+    except Exception as e:
+        print(f"Error loading memory: {e}")
+
+def save_used_word(user_id, word):
+    """Variable aur Database dono update karega"""
+    word = word.lower().strip()
+    if user_id not in LIFE_WORDS:
+        LIFE_WORDS[user_id] = set()
+    
+    if word not in LIFE_WORDS[user_id]:
+        LIFE_WORDS[user_id].add(word)
+        vocab_collection.update_one(
+            {"user_id": user_id},
+            {"$addToSet": {"banned_words": word}},
+            upsert=True
+        )
 
 # ===============================================
 # 🏆 LEADERBOARD SYSTEMS
 # ===============================================
 
 def update_battle_win(user_id):
-    """User ki battle win count badhane ke liye"""
     users_collection.update_one(
         {"user_id": user_id},
         {"$inc": {"battle_wins": 1}},
@@ -30,15 +57,13 @@ def update_battle_win(user_id):
     )
 
 def get_battle_leaderboard():
-    """Global Top 10 Battle Winners"""
     return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10)
 
 def get_couple_leaderboard(chat_id):
-    """Group ke top couples ki list"""
+    """Fixes the SyntaxError from logs"""
     return couple_collection.find({"chat_id": chat_id}).sort("date", -1).limit(10)
 
 def get_mafia_leaderboard():
-    """Top Mafia Teams ki ranking"""
     return mafia_collection.find().sort("points", -1).limit(10)
 
 # ===============================================
@@ -46,7 +71,6 @@ def get_mafia_leaderboard():
 # ===============================================
 
 def save_daily_couple(chat_id, user1_id, user2_id):
-    """Daily couple save karne ke liye"""
     from datetime import datetime
     today = datetime.now().strftime("%Y-%m-%d")
     couple_collection.update_one(
@@ -56,7 +80,6 @@ def save_daily_couple(chat_id, user1_id, user2_id):
     )
 
 def ensure_user_exists(user):
-    """User profile setup"""
     users_collection.update_one(
         {"user_id": user.id},
         {
@@ -65,18 +88,3 @@ def ensure_user_exists(user):
         },
         upsert=True
     )
-
-# ===============================================
-# 🧠 CHATBOT MEMORY (Life-Time Blocking)
-# ===============================================
-
-def save_used_word(user_id, word):
-    vocab_collection.update_one(
-        {"user_id": user_id},
-        {"$addToSet": {"banned_words": word.lower()}},
-        upsert=True
-    )
-
-def get_banned_words(user_id):
-    data = vocab_collection.find_one({"user_id": user_id})
-    return data["banned_words"] if data else []
