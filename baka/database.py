@@ -25,7 +25,6 @@ ws_wins_collection = db["wordseek_wins"]
 # ===============================================
 
 def update_ws_win(user_id, name):
-    """User ki wordseek wins database mein save karein"""
     ws_wins_collection.update_one(
         {"user_id": user_id},
         {"$inc": {"wins": 1}, "$set": {"name": name}},
@@ -33,7 +32,6 @@ def update_ws_win(user_id, name):
     )
 
 def get_ws_leaderboard():
-    """Top 10 Wordseek winners ki ranking"""
     return ws_wins_collection.find().sort("wins", -1).limit(10)
 
 def update_mafia_stats(team_name, points):
@@ -60,6 +58,17 @@ def get_battle_leaderboard():
 # 🧠 LIFE-TIME MEMORY & CORE FUNCTIONS
 # ===============================================
 
+def ws_start_game(chat_id, word):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id}, 
+        {"$set": {"word": word.lower(), "status": "active"}}, 
+        upsert=True
+    )
+
+def ws_get_game(chat_id):
+    # Yeh function missing tha jiski wajah se error aaya
+    return wordseek_collection.find_one({"chat_id": chat_id})
+
 def get_banned_words(user_id):
     data = vocab_collection.find_one({"user_id": user_id})
     return data.get("banned_words", []) if data else []
@@ -68,13 +77,6 @@ def save_used_word(user_id, word):
     vocab_collection.update_one(
         {"user_id": user_id}, 
         {"$addToSet": {"banned_words": word.lower().strip()}}, 
-        upsert=True
-    )
-
-def ws_start_game(chat_id, word):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id}, 
-        {"$set": {"word": word.lower(), "status": "active"}}, 
         upsert=True
     )
 
