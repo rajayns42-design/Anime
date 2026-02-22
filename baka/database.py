@@ -21,18 +21,49 @@ riddles_collection = db["riddles"]
 ws_wins_collection = db["wordseek_wins"]
 
 # ===============================================
-# 🏆 ALL LEADERBOARDS (Wordseek Added)
+# 🏆 WORDSEEK CORE (Fixes ImportError)
 # ===============================================
 
-def update_ws_win(user_id, name):
+def ws_start_game(chat_id, word):
+    # active flag add kiya gaya hai taaki plugin check kar sake
+    wordseek_collection.update_one(
+        {"chat_id": chat_id}, 
+        {"$set": {"word": word.upper(), "active": True, "board": []}}, 
+        upsert=True
+    )
+
+def ws_get_game(chat_id):
+    return wordseek_collection.find_one({"chat_id": chat_id})
+
+def ws_update_board(chat_id, board):
+    # Board state save karne ke liye
+    wordseek_collection.update_one(
+        {"chat_id": chat_id}, 
+        {"$set": {"board": board}}
+    )
+
+def ws_end_game(chat_id):
+    wordseek_collection.update_one(
+        {"chat_id": chat_id}, 
+        {"$set": {"active": False}}
+    )
+
+def ws_add_win(chat_id, user_id, name):
+    # update_ws_win ko rename kiya gaya hai plugin ki demand par
     ws_wins_collection.update_one(
         {"user_id": user_id},
         {"$inc": {"wins": 1}, "$set": {"name": name}},
         upsert=True
     )
 
-def get_ws_leaderboard():
-    return ws_wins_collection.find().sort("wins", -1).limit(10)
+def ws_get_leaderboard(chat_id):
+    # Dictionary format return karta hai jaisa wordseek.py ko chahiye
+    winners = ws_wins_collection.find().sort("wins", -1).limit(10)
+    return {str(w['user_id']): {"name": w['name'], "wins": w['wins']} for w in winners}
+
+# ===============================================
+# 🏆 OTHER LEADERBOARDS
+# ===============================================
 
 def update_mafia_stats(team_name, points):
     mafia_collection.update_one(
@@ -55,19 +86,8 @@ def get_battle_leaderboard():
     return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10)
 
 # ===============================================
-# 🧠 LIFE-TIME MEMORY & CORE FUNCTIONS
+# 🧠 CORE FUNCTIONS
 # ===============================================
-
-def ws_start_game(chat_id, word):
-    wordseek_collection.update_one(
-        {"chat_id": chat_id}, 
-        {"$set": {"word": word.lower(), "status": "active"}}, 
-        upsert=True
-    )
-
-def ws_get_game(chat_id):
-    # Yeh function missing tha jiski wajah se error aaya
-    return wordseek_collection.find_one({"chat_id": chat_id})
 
 def get_banned_words(user_id):
     data = vocab_collection.find_one({"user_id": user_id})
