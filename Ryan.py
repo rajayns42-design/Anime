@@ -33,7 +33,7 @@ def run_flask(): app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=Fa
 
 # ---------------- STARTUP LOGS & MENU SETTING ----------------
 async def post_init(application):
-    # Registration of ALL 35+ commands for the Telegram Menu
+    # Registration of ALL commands for the Telegram Menu
     bot_commands = [
         BotCommand("start", "Tᴀʟᴋᴇ Tᴏ Aɴɢᴇʟ"),
         BotCommand("ping", "Cʜᴇᴋ ʏᴏᴜʀ Aɴɢᴇʟ Sᴩᴇᴇᴅ"),
@@ -71,6 +71,10 @@ async def post_init(application):
         BotCommand("mpromote", "Pʀᴏᴍɪᴛᴇ ᴍᴀꜰɪᴀ ᴍᴇᴍʙᴀʀ"),
         BotCommand("team_war", "Cʀᴇᴀᴛ Tᴇᴀᴍ & Aᴛᴀᴄᴋ"),
         BotCommand("mafialb", "M-Lᴇᴀᴅᴇʀʙᴏᴀʀᴅ"),
+        BotCommand("t_deposit", "Dᴇᴘᴏsɪᴛ ɪɴ Tᴇᴀᴍ Bᴀɴᴋ"),
+        BotCommand("t_withdraw", "Wɪᴛʜᴅʀᴀᴡ ғʀᴏᴍ Tᴇᴀᴍ Bᴀɴᴋ"),
+        BotCommand("kick", "Kɪᴄᴋ ᴀ Tᴇᴀᴍ Mᴇᴍʙᴇʀ"),
+        BotCommand("leave", "Lᴇᴀᴠᴇ ᴛʜᴇ Tᴇᴀᴍ"),
         BotCommand("riddle", "Rɪᴅᴅʟᴇ Wɪᴛʜ Fʀɪᴇɴᴅ"),
         BotCommand("arena", "Pʟᴀʏ ᴛʜᴇ Aʀᴇɴᴀ")
     ]
@@ -112,7 +116,11 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("join_team", mafia.join_team))
     app_bot.add_handler(CommandHandler("mpromote", mafia.promote_member))
     app_bot.add_handler(CommandHandler("team_war", mafia.team_war))
-    app_bot.add_handler(CommandHandler("mafialb", mafia.leaderboard))
+    app_bot.add_handler(CommandHandler("mafialb", mafia.team_leaderboard)) # FIXED: matches team_leaderboard in mafia.py
+    app_bot.add_handler(CommandHandler("t_deposit", mafia.team_deposit))
+    app_bot.add_handler(CommandHandler("t_withdraw", mafia.team_withdraw))
+    app_bot.add_handler(CommandHandler("kick", mafia.kick_member))
+    app_bot.add_handler(CommandHandler("leave", mafia.leave_team))
 
     # ========= 5. SOCIAL & WAIFU =========
     app_bot.add_handler(CommandHandler("marry", social.propose))
@@ -138,12 +146,12 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("dice", fun.dice)) 
     app_bot.add_handler(CommandHandler("welcome", welcome.welcome_toggle))
 
-    # ========= 8. CALLBACK HANDLERS (HELP BUTTON SUPPORT) =========
+    # ========= 8. CALLBACK HANDLERS =========
     app_bot.add_handler(CallbackQueryHandler(start.help_callback, pattern="^(start_|help_|return_|cb_|help_menu)"))
     app_bot.add_handler(CallbackQueryHandler(shop.shop_callback, pattern="^shop_"))
     app_bot.add_handler(CallbackQueryHandler(social.proposal_callback, pattern="^marry_"))
 
-    # ========= 9. MESSAGE LISTENERS (PRIORITY GROUPS) =========
+    # ========= 9. MESSAGE LISTENERS =========
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, wordseek.guess), group=0)
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=1)
     app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, collection.check_drops), group=2)
@@ -157,5 +165,5 @@ if __name__ == '__main__':
     app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
 
     # Final Launch
-    print(f"✅ {BOT_NAME} DEPLOYED WITH ALL COMMANDS & HELP MENU!")
+    print(f"✅ {BOT_NAME} DEPLOYED WITH FULL HANDLERS!")
     app_bot.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
