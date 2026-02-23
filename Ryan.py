@@ -50,9 +50,9 @@ async def post_init(application):
         BotCommand("chatbot", "Aɴɢᴇʟ Aɪ Sᴇᴛᴛɪɴɢꜱ"),
         BotCommand("ask", "Aꜱᴋ Aɴʏᴛʜɪᴋ"),
         BotCommand("welcome", "Wᴇʟᴄᴏᴍᴇ Oɴ/Oғғ"),
-        BotCommand("truth", "Lᴏᴠᴇ Tʀᴜᴛʜ"),
-        BotCommand("dare", "Lᴏᴠᴇ Dᴀʀᴇ"),
-        BotCommand("quiz", "Lᴏᴠᴇ Qᴜɪᴢ"),
+        BotCommand("truth", "Fᴜɴ Wɪᴛʜ Lᴏᴠᴇ Tʀᴜᴛʜ"),
+        BotCommand("dare", "Fᴜɴ Wɪᴛʜ Lᴏᴠᴇ Dᴀʀᴇ"),
+        BotCommand("quiz", "Fᴜɴ Wɪᴛʜ Lᴏᴠᴇ Qᴜɪᴢ"),
         BotCommand("battle", "Cʙ Gᴀᴍᴇꜱ"),
         BotCommand("battlelb", "Cʙ- Lᴇᴀᴅᴇʀʙᴏᴀʀᴅ"),
         BotCommand("marry", "Pʀᴏꜱᴇ ʏᴏᴜʀ ɢʀɪʀꜰʀɪᴇɴᴅ"),
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("wleaderboard", wordseek.leaderboard))
     app_bot.add_handler(CommandHandler("riddle", riddle.riddle_command))
     app_bot.add_handler(CommandHandler("dice", fun.dice)) 
-    app_bot.add_handler(CommandHandler("welcome", welcome.welcome_toggle))
+    app_bot.add_handler(CommandHandler("welcome", welcome.welcome_command))
 
     # ========= 8. CALLBACK HANDLERS =========
     app_bot.add_handler(CallbackQueryHandler(start.help_callback, pattern="^(start_|help_|return_|cb_|help_menu)"))
