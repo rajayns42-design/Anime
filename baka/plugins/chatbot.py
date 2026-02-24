@@ -1,6 +1,7 @@
+# Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
 import requests
 import re
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode, ChatType
 from baka.config import MISTRAL_API_KEY, BOT_NAME
@@ -12,7 +13,6 @@ from baka.database import (
 
 # --- 🧠 CORE AI ENGINE ---
 async def get_mistral_response(user_id, user_text):
-    """Mistral AI se Hinglish response leta hai [cite: 2026-02-22]"""
     if not MISTRAL_API_KEY:
         return None
     
@@ -28,7 +28,7 @@ async def get_mistral_response(user_id, user_text):
         "Strictly NO symbols or emojis. "
         f"Ye words repeat mat karna: [{past_vocab}]. "
         "Fresh words use kar."
-    ) [cite: 2026-02-22]
+    )
     
     data = {
         "model": "open-mistral-7b",
@@ -51,63 +51,30 @@ async def get_mistral_response(user_id, user_text):
     except:
         return None
 
-# --- 🛠️ TOGGLE MENU & HELP (Support Hata Diya) ---
+# --- ⚙️ SETTINGS ---
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Settings menu without Support text [cite: 2026-02-21]"""
     chat_id = update.effective_chat.id
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
     status = doc.get("enabled", True) if doc else True
     
-    txt = "✅ Enabled" if status else "❌ Disabled"
-    btn_txt = "Switch Off ❌" if status else "Switch On ✅"
+    new_val = not status
+    chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": new_val}}, upsert=True)
     
-    # "Help / Support" ko hata kar sirf "Help" kar diya [cite: 2026-02-21]
-    keyboard = [
-        [InlineKeyboardButton(btn_txt, callback_data="cb_toggle")],
-        [InlineKeyboardButton("❓ Help", callback_data="cb_help")]
-    ] [cite: 2026-02-21]
-    
-    await update.message.reply_text(
-        f"<b>🤖 {BOT_NAME} Chat Settings</b>\n\n"
-        f"Status: <code>{txt}</code>\n"
-        "AI will reply to messages automatically.",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.HTML
-    )
+    txt = "✅ Enabled" if new_val else "❌ Disabled"
+    await update.message.reply_text(f"🤖 Chatbot Status Updated: <b>{txt}</b>", parse_mode=ParseMode.HTML)
 
-async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Callback for buttons [cite: 2026-02-21]"""
-    query = update.callback_query
-    chat_id = query.message.chat.id
-    
-    if query.data == "cb_toggle":
-        doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
-        new_val = not (doc.get("enabled", True) if doc else True)
-        chatbot_collection.update_one({"chat_id": f"settings_{chat_id}"}, {"$set": {"enabled": new_val}}, upsert=True)
-        await query.answer("Settings Updated!")
-        
-        txt = "✅ Enabled" if new_val else "❌ Disabled"
-        btn_txt = "Switch Off ❌" if new_val else "Switch On ✅"
-        kb = [[InlineKeyboardButton(btn_txt, callback_data="cb_toggle")], [InlineKeyboardButton("❓ Help", callback_data="cb_help")]]
-        await query.edit_message_text(f"<b>🤖 {BOT_NAME} Chat Settings</b>\n\nStatus: <code>{txt}</code>", reply_markup=InlineKeyboardMarkup(kb), parse_mode=ParseMode.HTML)
-        
-    if query.data == "cb_help":
-        await query.answer("Bas chat karo, AI khud reply degi!", show_alert=True) [cite: 2026-02-21]
-
-# --- 💬 MESSAGE HANDLERS (With Tagging) ---
+# --- 💬 HANDLERS ---
 async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Manual command handler [cite: 2026-02-22]"""
-    if not context.args: return await update.message.reply_text("Kuch toh pucho baby!")
+    if not context.args: return
     
     user = update.effective_user
     res = await get_mistral_response(user.id, " ".join(context.args))
     
     if res:
         tag = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
-        await update.message.reply_text(f"{tag} {res}", parse_mode=ParseMode.HTML) [cite: 2026-02-22]
+        await update.message.reply_text(f"{tag} {res}", parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
 async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Auto-reply logic [cite: 2026-02-22]"""
     msg = update.effective_message
     if not msg or not msg.text or msg.text.startswith("/") or msg.from_user.is_bot:
         return
@@ -123,7 +90,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     
     if reply:
         if chat.type == ChatType.PRIVATE:
-            await msg.reply_text(reply)
+            await msg.reply_text(reply, disable_web_page_preview=True)
         else:
             tag = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
-            await msg.reply_text(f"{tag} {reply}", parse_mode=ParseMode.HTML) [cite: 2026-02-22]
+            await msg.reply_text(f"{tag} {reply}", parse_mode=ParseMode.HTML, disable_web_page_preview=True)
