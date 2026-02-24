@@ -17,6 +17,7 @@ async def get_mistral_response(user_id, user_text):
     
     # Lifetime memory check (Memory optimized for speed)
     banned_list = get_banned_words(user_id) 
+    # Sirf last 100 words process karega taaki response fast ho
     banned_str = ", ".join(banned_list[-100:])
 
     system_prompt = (
@@ -36,6 +37,7 @@ async def get_mistral_response(user_id, user_text):
     try:
         response = requests.post(url, json=data, headers=headers, timeout=7)
         ans = response.json()['choices'][0]['message']['content'].strip()
+        # Cleaning symbols to prevent BadRequest
         clean_text = re.sub(r'[^a-zA-Z0-9\s]', '', ans)
         
         # Save words for lifetime unique rule
@@ -47,7 +49,7 @@ async def get_mistral_response(user_id, user_text):
     except:
         return None
 
-# --- ⚙️ TOGGLE LOGIC (FIXED ON/OFF) ---
+# --- ⚙️ TOGGLE LOGIC (FIXED) ---
 async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
@@ -55,7 +57,7 @@ async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Current status check (default True)
     current_status = doc.get("enabled", True) if doc else True
     
-    # Logic Fix: Flip the status correctly
+    # Logic Fix: Ab status sahi se flip hoga
     new_status = not current_status
     chatbot_collection.update_one(
         {"chat_id": f"settings_{chat_id}"}, 
@@ -63,12 +65,16 @@ async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         upsert=True
     )
     
-    # Display Fix: Show correct label
+    # Label Fix: User ko wahi dikhega jo set hua hai
     label = "✅ On" if new_status else "❌ Off"
-    await update.message.reply_text(f"🤖 <b>AI Status: {label}</b>", parse_mode=ParseMode.HTML)
+    await update.message.reply_text(
+        f"🤖 <b>AI Status: {label}</b>\nAb bot {label.split()[1]} ho gaya hai.", 
+        parse_mode=ParseMode.HTML
+    )
 
-# --- 💬 MANUAL ASK (Fixed AttributeError) ---
+# --- 💬 MANUAL ASK (Fixes AttributeError) ---
 async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Command handler for /ask"""
     if not context.args:
         return await update.message.reply_text("Kuch toh pucho baby!")
         
@@ -80,7 +86,7 @@ async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"{tag} {res.lower()}", 
             parse_mode=ParseMode.HTML, 
-            disable_web_page_preview=True
+            disable_web_page_preview=True # Fixes web page type error
         )
 
 # --- 💬 AUTO REPLY (Unlimited & Fast) ---
@@ -92,7 +98,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     chat = update.effective_chat
     user = update.effective_user
     
-    # Status Check
+    # Database status check
     doc = chatbot_collection.find_one({"chat_id": f"settings_{chat.id}"})
     is_enabled = doc.get("enabled", True) if doc else True
     
@@ -105,7 +111,7 @@ async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if chat.type == ChatType.PRIVATE:
             await msg.reply_text(reply.lower(), disable_web_page_preview=True)
         else:
-            # Sirf shuru mein naam
+            # First name tag for groups
             mention = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
             await msg.reply_text(
                 f"{mention} {reply.lower()}", 
