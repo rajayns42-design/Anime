@@ -4,7 +4,7 @@
 import html
 import re
 from datetime import datetime, timedelta
-from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Bot
 from telegram.constants import ParseMode, ChatType
 from baka.database import users_collection, sudoers_collection, groups_collection
 from baka.config import OWNER_ID, SUDO_IDS_STR, LOGGER_ID, BOT_NAME, AUTO_REVIVE_HOURS, AUTO_REVIVE_BONUS
@@ -41,10 +41,12 @@ async def log_to_channel(bot: Bot, event_type: str, details: dict = None):
     if 'user' in details: text += f"👤 <b>𝐓𝐫𝐢𝐠𝐠𝐞𝐫:</b> {details['user']}\n"
     if 'chat' in details: text += f"📍 <b>𝐂𝐡𝐚𝐭:</b> {html.escape(str(details['chat']))}\n"
     text += f"\n🤖 <i>{BOT_NAME} Systems</i>"
-    try: await bot.send_message(chat_id=LOGGER_ID, text=text, parse_mode=ParseMode.HTML)
+    try: 
+        # disable_web_page_preview added to avoid Wrong Type Error in Logs
+        await bot.send_message(chat_id=LOGGER_ID, text=text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     except: pass
 
-# --- 🛠️ CORE HELPERS (FIXED) ---
+# --- 🛠️ CORE HELPERS ---
 
 def format_money(amount): 
     return f"${amount:,}"
@@ -96,17 +98,3 @@ def track_group(chat, user):
 def stylize_text(text):
     font_map = {'a': 'ᴀ', 'b': 'ʙ', 'c': 'ᴄ', 'd': 'ᴅ', 'e': 'ᴇ', 'f': 'ꜰ', 'g': 'ɢ', 'h': 'ʜ', 'i': 'ɪ', 'j': 'ᴊ', 'k': 'ᴋ', 'l': 'ʟ', 'm': 'ᴍ', 'n': 'ɴ', 'o': 'ᴏ', 'p': 'ᴩ', 'q': 'q', 'r': 'ʀ', 's': 'ꜱ', 't': 'ᴛ', 'u': 'ᴜ', 'v': 'ᴠ', 'w': 'ᴡ', 'x': 'x', 'y': 'ʏ', 'z': 'ᴢ'}
     return "".join(font_map.get(c.lower(), c) for c in text)
-
-# --- 🆘 HELP MENU & BUTTONS ---
-
-def get_help_menu_keyboard():
-    # Adding HELP button as requested
-    keyboard = [
-        [InlineKeyboardButton("❍ BAL ❍", callback_data="cb_bal"), InlineKeyboardButton("❍ CHECK ❍", callback_data="cb_check"), InlineKeyboardButton("❍ GUESS ❍", callback_data="cb_guess")],
-        [InlineKeyboardButton("❍ HAREM ❍", callback_data="cb_harem"), InlineKeyboardButton("❍ CHAT ❍", callback_data="cb_chat"), InlineKeyboardButton("❍ FAV ❍", callback_data="cb_fav")],
-        [InlineKeyboardButton("❍ SHOP ❍", callback_data="cb_shop"), InlineKeyboardButton("❍ SPAWN ❍", callback_data="cb_spawn"), InlineKeyboardButton("❍ TAG ❍", callback_data="cb_tag")],
-        [InlineKeyboardButton("❍ TRADE ❍", callback_data="cb_trade"), InlineKeyboardButton("❍ UPLOAD ❍", callback_data="cb_upload"), InlineKeyboardButton("❍ BROAD ❍", callback_data="cb_broad")],
-        [InlineKeyboardButton("🆘 HELP", callback_data="cb_help_guide")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="start_return")]
-    ]
-    return InlineKeyboardMarkup(keyboard)
