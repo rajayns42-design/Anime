@@ -53,8 +53,9 @@ async def post_init(application):
         BotCommand("arena", "Pʟᴀʏ ᴛʜᴇ Aʀᴇɴᴀ")
     ]
     await application.bot.set_my_commands(bot_commands)
-    # Logger: Notification when bot starts
-    await log_to_channel(application.bot, "🚀 <b>ZEXX Master Core Online!</b>\nAll Handlers & Loggers are Active.")
+    
+    # Logger: Jab bot Heroku par start hoga
+    await log_to_channel(application.bot, "start") 
 
 # ---------------- THE MASTER MAIN ----------------
 if __name__ == '__main__':
@@ -107,14 +108,16 @@ if __name__ == '__main__':
     app_bot.add_handler(CommandHandler("dare", fun.dare))
     app_bot.add_handler(CommandHandler("quiz", fun.quiz))
 
-    # ========= 6. AI & CHATBOT (Group Logic) =========
+    # ========= 6. AI & CHATBOT (Unlimited Fast Reply) =========
+    # Fixed: Toggle aur Ask commands sahi se link hain
     app_bot.add_handler(CommandHandler("chatbot", chatbot.chatbot_toggle)) 
     app_bot.add_handler(CommandHandler("ask", chatbot.ask_ai))
     app_bot.add_handler(CommandHandler("speak", ai_media.speak_command))
     app_bot.add_handler(CommandHandler("draw", ai_media.draw_command))
 
-    # ========= 7. SYSTEM EVENTS & WELCOME (Add Group Logs) =========
+    # ========= 7. SYSTEM EVENTS & LOGGER (Group Add/Leave) =========
     app_bot.add_handler(CommandHandler("welcome", welcome.welcome_command))
+    # Logger: Jab bot group join ya leave karega
     app_bot.add_handler(ChatMemberHandler(events.chat_member_update))
     app_bot.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome.new_member))
 
@@ -126,10 +129,12 @@ if __name__ == '__main__':
     app_bot.add_handler(CallbackQueryHandler(shop.shop_callback, pattern="^shop_"))
     app_bot.add_handler(CallbackQueryHandler(social.proposal_callback, pattern="^marry_"))
 
-    # ========= 9. MESSAGE LISTENERS (Auto-Reply Bina /ask ke) =========
+    # ========= 9. MESSAGE LISTENERS =========
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=1)
-    # Chatbot auto-reply bina /ask ke [Group 6 priority]
-    app_bot.add_handler(MessageHandler(filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND, chatbot.ai_message_handler), group=6)
+    
+    # Chatbot Auto-Reply: Private aur Groups dono ke liye
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=6)
+    
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_riddle_answer), group=4)
     app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wishes.wishes_handler), group=5)
 
