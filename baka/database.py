@@ -44,20 +44,21 @@ def is_chatbot_enabled(chat_id):
 # ===============================================
 
 def get_top_rich():
-    """Economy ranking ke liye users fetch karta hai"""
     return users_collection.find().sort("balance", -1).limit(10)
 
 def get_mafia_leaderboard():
-    """Mafia team points ki ranking ke liye"""
     return mafia_collection.find().sort("points", -1).limit(10)
 
 def get_battle_leaderboard():
-    """RPG Battle wins ki ranking ke liye"""
     return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10)
 
-def ws_get_leaderboard():
-    """Wordseek game ke top winners fetch karne ke liye"""
-    return ws_wins_collection.find().sort("wins", -1).limit(10)
+def ws_get_leaderboard(chat_id=None):
+    """Wordseek leaderboard data formatted as a dictionary for the bot logic"""
+    cursor = ws_wins_collection.find().sort("wins", -1).limit(10)
+    lb_dict = {}
+    for doc in cursor:
+        lb_dict[str(doc["user_id"])] = {"name": doc.get("name", "Unknown"), "wins": doc.get("wins", 0)}
+    return lb_dict
 
 # ===============================================
 # 🎮 GAME HELPERS (Wordseek & Mafia)
@@ -72,6 +73,20 @@ def ws_start_game(chat_id, word):
 
 def ws_get_game(chat_id):
     return wordseek_collection.find_one({"chat_id": chat_id})
+
+def ws_update_board(chat_id, board):
+    """Fixes the ImportError: Updates current board emojis in DB"""
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"board": board}}
+    )
+
+def ws_end_game(chat_id):
+    """Fixes the crash: Marks game as inactive"""
+    wordseek_collection.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"active": False}}
+    )
 
 def ws_add_win(chat_id, user_id, name):
     ws_wins_collection.update_one(
