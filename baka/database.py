@@ -21,7 +21,7 @@ riddles_collection = db["riddles"]
 ws_wins_collection = db["wordseek_wins"]
 
 # ===============================================
-# 🧠 CHATBOT CORE
+# 🧠 CHATBOT CORE (Lifetime Memory)
 # ===============================================
 
 def get_banned_words(user_id):
@@ -40,7 +40,27 @@ def is_chatbot_enabled(chat_id):
     return doc.get("enabled", True) if doc else True
 
 # ===============================================
-# 🏆 GAME & LEADERBOARD HELPERS
+# 🏆 ALL LEADERBOARD FUNCTIONS
+# ===============================================
+
+def get_top_rich():
+    """Economy ranking ke liye users fetch karta hai"""
+    return users_collection.find().sort("balance", -1).limit(10)
+
+def get_mafia_leaderboard():
+    """Mafia team points ki ranking ke liye"""
+    return mafia_collection.find().sort("points", -1).limit(10)
+
+def get_battle_leaderboard():
+    """RPG Battle wins ki ranking ke liye"""
+    return users_collection.find({"battle_wins": {"$gt": 0}}).sort("battle_wins", -1).limit(10)
+
+def ws_get_leaderboard():
+    """Wordseek game ke top winners fetch karne ke liye"""
+    return ws_wins_collection.find().sort("wins", -1).limit(10)
+
+# ===============================================
+# 🎮 GAME HELPERS (Wordseek & Mafia)
 # ===============================================
 
 def ws_start_game(chat_id, word):
@@ -59,12 +79,6 @@ def ws_add_win(chat_id, user_id, name):
         {"$inc": {"wins": 1}, "$set": {"name": name}},
         upsert=True
     )
-
-def get_top_rich():
-    return users_collection.find().sort("balance", -1).limit(10)
-
-def get_mafia_leaderboard():
-    return mafia_collection.find().sort("points", -1).limit(10)
 
 # ===============================================
 # 🛠️ GENERAL HELPERS
