@@ -61,6 +61,10 @@ def run_flask():
 async def post_init(application):
     """Runs immediately after bot connects to Telegram."""
     print("✅ Bot connected! Setting menu commands...")
+       
+     Set the blue "Menu" button in Telegram
+ 
+ await application.bot.set_my_commands([
         BotCommand("start", "Tᴀʟᴋᴇ Tᴏ Aɴɢᴇʟ"),
         BotCommand("ping", "Cʜᴇᴋ ʏᴏᴜʀ Aɴɢᴇʟ Sᴩᴇᴇᴅ"),
         BotCommand("help", "Aɴɢᴇʟ Hᴇʟᴩ Mᴇɴᴜ"),
@@ -79,15 +83,35 @@ async def post_init(application):
         BotCommand("mafialb", "M-Lᴇᴀᴅᴇʀʙᴏᴀʀᴅ"),
         BotCommand("arena", "Pʟᴀʏ ᴛʜᴇ Aʀᴇɴᴀ"),
     
-    # Logger: Jab bot Heroku par start hoga
-    await log_to_channel(application.bot, "start") 
+try:
+        bot_info = await application.bot.get_me()
+        print(f"✅ Logged in as {bot_info.username}")
 
-# ---------------- THE MASTER MAIN ----------------
+        # Send "Online" Log to Channel
+        await log_to_channel(application.bot, "start", {
+            "user": "System",
+            "chat": "Cloud Server",
+            "action": f"{BOT_NAME} (@{bot_info.username}) is now Online! 🚀"
+        })
+    except Exception as e:
+        print(f"⚠️ Startup Log Failed: {e}")
+
+# --- MAIN EXECUTION ---
 if __name__ == '__main__':
-    Thread(target=run_flask, daemon=True).start()
-
-    request = HTTPXRequest(connection_pool_size=20)
-    app_bot = ApplicationBuilder().token(TOKEN).request(request).post_init(post_init).build()
+    # 1. Start Web Server (Background Thread)
+    flask_thread = Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+    
+    # 2. Check Token
+    if not TOKEN:
+        print("CRITICAL: BOT_TOKEN is missing. Check baka/config.py or Env Vars.")
+    else:
+        # 3. Configure Network (High Timeouts for Stability)
+        t_request = HTTPXRequest(connection_pool_size=16, connect_timeout=60.0, read_timeout=60.0)
+        
+        # 4. Build Application
+        app_bot = ApplicationBuilder().token(TOKEN).request(t_request).post_init(post_init).build()
 
     # ========= 1. CORE & ADMIN (Logger Linked) =========
     app_bot.add_handler(CommandHandler("start", start.start))
