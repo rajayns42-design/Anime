@@ -45,15 +45,22 @@ from baka.plugins import (
     mafia, wordseek, wishes, couple, love, battle
 )
 
-# ---------------- FLASK (Stay Alive) ----------------
-app = Flask(__name__)
-@app.route('/')
-def health(): return f"{BOT_NAME} is Alive!"
-def run_flask(): app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
 
-# ---------------- STARTUP LOGS & MENU SETTING ----------------
+# --- FLASK SERVER (Health Check) ---
+app = Flask(__name__)
+
+@app.route('/')
+def health(): 
+    return "Alive"
+
+def run_flask(): 
+    # Run on 0.0.0.0 to bind to Heroku's external port
+    app.run(host='0.0.0.0', port=PORT, debug=False, use_reloader=False)
+
+# --- STARTUP LOGIC ---
 async def post_init(application):
-    bot_commands = [
+    """Runs immediately after bot connects to Telegram."""
+    print("✅ Bot connected! Setting menu commands...")
         BotCommand("start", "Tᴀʟᴋᴇ Tᴏ Aɴɢᴇʟ"),
         BotCommand("ping", "Cʜᴇᴋ ʏᴏᴜʀ Aɴɢᴇʟ Sᴩᴇᴇᴅ"),
         BotCommand("help", "Aɴɢᴇʟ Hᴇʟᴩ Mᴇɴᴜ"),
@@ -70,9 +77,7 @@ async def post_init(application):
         BotCommand("dare", "Fᴜɴ Wɪᴛʜ Lᴏᴠᴇ Dᴀʀᴇ"),
         BotCommand("quiz", "Fᴜɴ Wɪᴛʜ Lᴏᴠᴇ Qᴜɪᴢ"),
         BotCommand("mafialb", "M-Lᴇᴀᴅᴇʀʙᴏᴀʀᴅ"),
-        BotCommand("arena", "Pʟᴀʏ ᴛʜᴇ Aʀᴇɴᴀ")
-    ]
-    await application.bot.set_my_commands(bot_commands)
+        BotCommand("arena", "Pʟᴀʏ ᴛʜᴇ Aʀᴇɴᴀ"),
     
     # Logger: Jab bot Heroku par start hoga
     await log_to_channel(application.bot, "start") 
