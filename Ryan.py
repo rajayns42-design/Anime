@@ -1,21 +1,41 @@
-# Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-# Status: Handlers Fixed | Logger Synced | Chatbot Auto-Reply On
+# Copyright (c) 2025 Telegram:- @WTF_Phantom <DevixOP>
+# Location: Supaul, Bihar 
+#
+# All rights reserved.
+#
+# This code is the intellectual property of @WTF_Phantom.
+# You are not allowed to copy, modify, redistribute, or use this
+# code for commercial or personal projects without explicit permission.
+# Allowed:
+# - Forking for personal learning
+# - Submitting improvements via pull requests
+# Not Allowed:
+# - Claiming this code as your own
+# - Re-uploading without credit or permission
+# - Selling or using commercially
+#
+# Contact for permissions:
+# Email: king25258069@gmail.com
 
 import os
+# --- CRITICAL FIX: MUST BE AT THE VERY TOP ---
+# This prevents Heroku crashing due to Git/Path issues
+
 os.environ["GIT_PYTHON_REFRESH"] = "quiet"
+# ---------------------------------------------
 
 from threading import Thread
 from flask import Flask
-from telegram import Update, BotCommand
+from telegram import Update 
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler,
+    ApplicationBuilder, CommandHandler, CallbackQueryHandler, 
     ChatMemberHandler, MessageHandler, filters
 )
 from telegram.request import HTTPXRequest
 
-# --- INTERNAL UTILS ---
-from baka.utils import track_group, log_to_channel, BOT_NAME
+# --- INTERNAL IMPORTS ---
 from baka.config import TOKEN, PORT
+from baka.utils import track_group, log_to_channel, BOT_NAME
 
 # --- ALL PLUGINS SYNCED ---
 from baka.plugins import (
