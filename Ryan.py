@@ -182,10 +182,10 @@ if __name__ == '__main__':
     app_bot.add_handler(MessageHandler(filters.ChatType.GROUPS, events.group_tracker), group=1)
     
     # Chatbot Auto-Reply: Private aur Groups dono ke liye
-    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chatbot.ai_message_handler), group=6)
+    app_bot.add_handler(MessageHandler((filters.TEXT | filters.Sticker.ALL) & ~filters.COMMAND, chatbot.ai_message_handler), group=4)
     
-    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_riddle_answer), group=4)
-    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wishes.wishes_handler), group=5)
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, riddle.check_riddle_answer), group=5)
+    app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wishes.wishes_handler), group=6)
 
     # Final Launch
     print(f"✅ {BOT_NAME} DEPLOYED WITH FULL LOGGER & CHATBOT!")
