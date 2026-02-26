@@ -26,7 +26,14 @@ FALLBACK_RESPONSES = [
     "Hmm... aur batao?",
     "Okk",
     "Sahi hai yaar",
-    "babu or bato"
+    "babu or bato",
+    "kkrh",
+    "kuch nhi",
+    "khana huaa",
+    "kya khaya",
+    "apne bare bato",
+    "kuch bhi",
+    "jo man me ho",
 ]
 
 async def send_ai_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -100,8 +107,8 @@ async def get_ai_response(chat_id: int, user_input: str, user_name: str):
 
     system_prompt = (
         f"Tum {BOT_NAME} ho. Ek cute Indian girl jo Hinglish me baat karti hai. "
-        "Rules: Short replies do. Normal text use karo. Koi fancy font nahi. "
-        "Emoji kabhi kabhi use karo. Zyada sawal mat pucho."
+        "Rules: Short replies do. Normal text use karo. Koi fancy font nahi or group or private jaise membar bat kre waishe tum bat krogi koi faltu bate nhi bologi or nhi faltu bate krogi or. "
+        "Emoji kabhi kabhi  karo. Zyada sawal mat pucho kisi se bhi."
     )
 
     messages = [{"role": "system", "content": system_prompt}]
