@@ -1,120 +1,158 @@
-# Copyright (c) 2026 Telegram:- @WTF_Phantom <DevixOP>
-import requests
-import re
-from telegram import Update
+# Copyright (c) 2025 Telegram:- @WTF_Phantom <DevixOP>
+# Location: Supaul, Bihar 
+
+import httpx
+import random
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
-from telegram.constants import ParseMode, ChatType
-from baka.config import MISTRAL_API_KEY, BOT_NAME
-from baka.database import chatbot_collection, save_used_word, get_banned_words
+from telegram.constants import ParseMode, ChatAction, ChatType
+from telegram.error import BadRequest
+from baka.config import MISTRAL_API_KEY, BOT_NAME, OWNER_LINK
+from baka.database import chatbot_collection
 
-# --- ⚡ FAST & UNIQUE AI ENGINE ---
-async def get_mistral_response(user_id, user_text):
-    if not MISTRAL_API_KEY:
-        return None
-    
-    url = "https://api.mistral.ai/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
-    
-    # Lifetime memory check (Memory optimized for speed)
-    banned_list = get_banned_words(user_id) 
-    # Sirf last 100 words process karega taaki response fast ho
-    banned_str = ", ".join(banned_list[-100:])
+# Settings
+MISTRAL_URL = "https://api.mistral.ai/v1/chat/completions"
+MODEL = "mistral-small-latest" 
+MAX_HISTORY = 12
 
-    system_prompt = (
-        f"Tu {BOT_NAME} hai, ek cute desi ladki. "
-        "Rule: Ek word life mein ek baar bolna. "
-        f"Ye words ban hain: [{banned_str}]. "
-        "Short, cute aur fast Hinglish reply de. No symbols."
-    )
-    
-    data = {
-        "model": "open-mistral-7b",
-        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_text}],
-        "max_tokens": 30, 
-        "temperature": 0.9
-    }
-    
+STICKER_PACKS = [
+    "https://t.me/addstickers/RandomByDarkzenitsu",
+    "https://t.me/addstickers/animation_0_8_Cat",
+    "https://t.me/addstickers/vhelw_by_CalsiBot"
+]
+
+FALLBACK_RESPONSES = [
+    "Achha ji?",
+    "Hmm... aur batao?",
+    "Okk",
+    "Sahi hai yaar",
+    "babu or bato"
+]
+
+async def send_ai_sticker(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        response = requests.post(url, json=data, headers=headers, timeout=7)
-        ans = response.json()['choices'][0]['message']['content'].strip()
-        # Cleaning symbols to prevent BadRequest
-        clean_text = re.sub(r'[^a-zA-Z0-9\s]', '', ans)
-        
-        # Save words for lifetime unique rule
-        for word in clean_text.lower().split():
-            if len(word) > 1:
-                save_used_word(user_id, word)
-        
-        return clean_text
+        raw_link = random.choice(STICKER_PACKS)
+        pack_name = raw_link.split('/')[-1]
+        sticker_set = await context.bot.get_sticker_set(pack_name)
+        if sticker_set and sticker_set.stickers:
+            sticker = random.choice(sticker_set.stickers)
+            await update.message.reply_sticker(sticker.file_id)
+            return True
     except:
-        return None
+        pass
+    return False
 
-# --- ⚙️ TOGGLE LOGIC (FIXED) ---
-async def chatbot_toggle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    doc = chatbot_collection.find_one({"chat_id": f"settings_{chat_id}"})
-    
-    # Current status check (default True)
-    current_status = doc.get("enabled", True) if doc else True
-    
-    # Logic Fix: Ab status sahi se flip hoga
-    new_status = not current_status
-    chatbot_collection.update_one(
-        {"chat_id": f"settings_{chat_id}"}, 
-        {"$set": {"enabled": new_status}}, 
-        upsert=True
-    )
-    
-    # Label Fix: User ko wahi dikhega jo set hua hai
-    label = "✅ On" if new_status else "❌ Off"
-    await update.message.reply_text(
-        f"🤖 <b>AI Status: {label}</b>\nAb bot {label.split()[1]} ho gaya hai.", 
-        parse_mode=ParseMode.HTML
-    )
+# --- MENU HANDLERS ---
 
-# --- 💬 MANUAL ASK (Fixes AttributeError) ---
-async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Command handler for /ask"""
-    if not context.args:
-        return await update.message.reply_text("Kuch toh pucho baby!")
-        
-    user = update.effective_user
-    res = await get_mistral_response(user.id, " ".join(context.args))
-    
-    if res:
-        tag = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
-        await update.message.reply_text(
-            f"{tag} {res.lower()}", 
-            parse_mode=ParseMode.HTML, 
-            disable_web_page_preview=True # Fixes web page type error
-        )
-
-# --- 💬 AUTO REPLY (Unlimited & Fast) ---
-async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = update.effective_message
-    if not msg or not msg.text or msg.text.startswith("/") or msg.from_user.is_bot:
-        return
-        
+async def chatbot_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     user = update.effective_user
-    
-    # Database status check
-    doc = chatbot_collection.find_one({"chat_id": f"settings_{chat.id}"})
+
+    if chat.type == ChatType.PRIVATE:
+        return await update.message.reply_text("Haan baba, DM me active hu! 😉")
+
+    member = await chat.get_member(user.id)
+    if member.status not in ['administrator', 'creator']:
+        return await update.message.reply_text("Tu Admin nahi hai, Baka!")
+
+    doc = chatbot_collection.find_one({"chat_id": chat.id})
     is_enabled = doc.get("enabled", True) if doc else True
+    status = "Enabled" if is_enabled else "Disabled"
+
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("Enable", callback_data="ai_enable"), InlineKeyboardButton("Disable", callback_data="ai_disable")],
+        [InlineKeyboardButton("Reset", callback_data="ai_reset"), InlineKeyboardButton("Help ❓", callback_data="ai_help")]
+    ])
+    await update.message.reply_text(f"AI Settings\nStatus: {status}", reply_markup=kb)
+
+async def chatbot_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    data = query.data
+    chat_id = query.message.chat.id
+
+    if data == "ai_help":
+        return await query.answer("Baby bat kro n.", show_alert=True)
+
+    member = await query.message.chat.get_member(query.from_user.id)
+    if member.status not in ['administrator', 'creator']: 
+        return await query.answer("only Admin ke liye hai.", show_alert=True)
+
+    if data == "ai_enable":
+        chatbot_collection.update_one({"chat_id": chat_id}, {"$set": {"enabled": True}}, upsert=True)
+        await query.message.edit_text("chatbot on ab maja ayega 😚")
+    elif data == "ai_disable":
+        chatbot_collection.update_one({"chat_id": chat_id}, {"$set": {"enabled": False}}, upsert=True)
+        await query.message.edit_text("chatbot off firr yad krna 🥹.")
+    elif data == "ai_reset":
+        chatbot_collection.update_one({"chat_id": chat_id}, {"$set": {"history": []}}, upsert=True)
+        await query.answer("Sab bhool gayi!", show_alert=True)
+
+# --- AI ENGINE ---
+
+async def get_ai_response(chat_id: int, user_input: str, user_name: str):
+    if not MISTRAL_API_KEY: return "API Key nahi mil rahi."
+
+    doc = chatbot_collection.find_one({"chat_id": chat_id}) or {}
+    history = doc.get("history", [])
+
+    # First message check: Use name only if no history exists
+    greeting = f"Oye {user_name}, " if not history else ""
+
+    system_prompt = (
+        f"Tum {BOT_NAME} ho. Ek cute Indian girl jo Hinglish me baat karti hai. "
+        "Rules: Short replies do. Normal text use karo. Koi fancy font nahi. "
+        "Emoji kabhi kabhi use karo. Zyada sawal mat pucho."
+    )
+
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in history[-MAX_HISTORY:]: 
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    messages.append({"role": "user", "content": user_input})
+
+    headers = {"Authorization": f"Bearer {MISTRAL_API_KEY}", "Content-Type": "application/json"}
+    payload = {"model": MODEL, "messages": messages, "temperature": 0.7, "max_tokens": 20}
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(MISTRAL_URL, json=payload, headers=headers)
+            if resp.status_code != 200: return "Mood kharab hai mera..."
+
+            reply = resp.json()["choices"][0]["message"]["content"].strip()
+            final_reply = f"{greeting}{reply}"
+
+            # History Update
+            new_hist = history + [
+                {"role": "user", "content": user_input}, 
+                {"role": "assistant", "content": reply}
+            ]
+            chatbot_collection.update_one({"chat_id": chat_id}, {"$set": {"history": new_hist[-20:]}}, upsert=True)
+            
+            return final_reply
+    except:
+        return "Network problem hai shayad."
+
+# --- MESSAGE HANDLER ---
+
+async def ai_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message
+    if not msg or not msg.text or msg.text.startswith("/"): return
     
-    if not is_enabled:
-        return
-        
-    reply = await get_mistral_response(user.id, msg.text)
+    chat = update.effective_chat
     
-    if reply:
-        if chat.type == ChatType.PRIVATE:
-            await msg.reply_text(reply.lower(), disable_web_page_preview=True)
-        else:
-            # First name tag for groups
-            mention = f"<a href='tg://user?id={user.id}'>{user.first_name}</a>"
-            await msg.reply_text(
-                f"{mention} {reply.lower()}", 
-                parse_mode=ParseMode.HTML, 
-                disable_web_page_preview=True
-            )
+    # Check if enabled in groups
+    if chat.type != ChatType.PRIVATE:
+        doc = chatbot_collection.find_one({"chat_id": chat.id})
+        if doc and not doc.get("enabled", True): return
+
+    await context.bot.send_chat_action(chat_id=chat.id, action=ChatAction.TYPING)
+    res = await get_ai_response(chat.id, msg.text, msg.from_user.first_name)
+    
+    await msg.reply_text(res)
+
+    if random.random() < 0.20:
+        await send_ai_sticker(update, context)
+
+async def ask_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args: return
+    res = await get_ai_response(update.effective_chat.id, " ".join(context.args), update.effective_user.first_name)
+    await update.message.reply_text(res)
