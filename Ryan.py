@@ -82,7 +82,7 @@ async def post_init(application):
         BotCommand("quiz", "Fᴜɴ Wɪᴛʜ Lᴏᴠᴇ Qᴜɪᴢ"),
         BotCommand("mafialb", "M-Lᴇᴀᴅᴇʀʙᴏᴀʀᴅ"),
         BotCommand("arena", "Pʟᴀʏ ᴛʜᴇ Aʀᴇɴᴀ"),
-    
+    ])
 try:
         bot_info = await application.bot.get_me()
         print(f"✅ Logged in as {bot_info.username}")
