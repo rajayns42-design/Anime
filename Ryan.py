@@ -63,8 +63,7 @@ async def post_init(application):
     print("✅ Bot connected! Setting menu commands...")
        
      Set the blue "Menu" button in Telegram
- 
- await application.bot.set_my_commands([
+      await application.bot.set_my_commands([
         BotCommand("start", "Tᴀʟᴋᴇ Tᴏ Aɴɢᴇʟ"),
         BotCommand("ping", "Cʜᴇᴋ ʏᴏᴜʀ Aɴɢᴇʟ Sᴩᴇᴇᴅ"),
         BotCommand("help", "Aɴɢᴇʟ Hᴇʟᴩ Mᴇɴᴜ"),
