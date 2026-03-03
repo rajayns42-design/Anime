@@ -61,9 +61,10 @@ def run_flask():
 async def post_init(application):
     """Runs immediately after bot connects to Telegram."""
     print("✅ Bot connected! Setting menu commands...")
-       
-     Set the blue "Menu" button in Telegram
-      await application.bot.set_my_commands([
+    
+    # Ye dono lines 'print' ke bilkul niche (vertical line mein) honi chahiye
+    # Set the blue "Menu" button in Telegram
+    await application.bot.set_my_commands([
         BotCommand("start", "Tᴀʟᴋᴇ Tᴏ Aɴɢᴇʟ"),
         BotCommand("ping", "Cʜᴇᴋ ʏᴏᴜʀ Aɴɢᴇʟ Sᴩᴇᴇᴅ"),
         BotCommand("help", "Aɴɢᴇʟ Hᴇʟᴩ Mᴇɴᴜ"),
